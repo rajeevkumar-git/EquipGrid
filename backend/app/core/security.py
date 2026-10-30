@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from dotenv import load_dotenv
 import os
+import bcrypt
+import jwt
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -11,15 +11,17 @@ SECRET_KEY = os.getenv("SECRET_KEY", "equipgrid_super_secret_key_change_in_produ
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440))
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except Exception:
+        return False
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -32,5 +34,5 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def decode_token(token: str) -> Optional[dict]:
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
+    except Exception:
         return None

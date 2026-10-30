@@ -443,12 +443,12 @@ def seed():
         _add_slots(db, resource.id)
 
     db.close()
-    print("\n✅ Seed data complete!")
+    print("\n[SUCCESS] Seed data complete!")
     print(f"\nDemo Login Credentials (password: {DEMO_PASSWORD}):")
-    print("  👨‍🎓 Student:     student@equipgrid.demo")
-    print("  🔬 Lab Manager: labmanager@equipgrid.demo")
-    print("  🛡️  Admin:       admin@equipgrid.demo")
-    print("  🔭 Researcher:  researcher@equipgrid.demo")
+    print("  Student:     student@equipgrid.demo")
+    print("  Lab Manager: labmanager@equipgrid.demo")
+    print("  Admin:       admin@equipgrid.demo")
+    print("  Researcher:  researcher@equipgrid.demo")
     print("\n  OR use /api/auth/demo-login/{email} for passwordless demo login (Judge Switcher)")
 
 
@@ -473,5 +473,5 @@ def _add_slots(db, resource_id: str):
 
 
 if __name__ == "__main__":
-    print("\n🌱 Seeding EquipGrid database...\n")
+    print("[INFO] Seeding EquipGrid database...")
     seed()
