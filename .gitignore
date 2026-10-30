@@ -18,11 +18,7 @@ dist-ssr/
 *.local
 .vite/
 
-# Unrelated workspace folders
-examination_portal/
-sanjeevani/
-trade-analysis-app/
-trade-analysis/
-trading-journal/
-scratch/
-bhavcopies/
+# Internal Hackathon Planning & Guides
+EQUIPGRID_DEEP_ANALYSIS.md
+HACKATHON_ROLES_AND_EXECUTION_GUIDE.html
+HACKATHON_ROLES_AND_EXECUTION_GUIDE.md
