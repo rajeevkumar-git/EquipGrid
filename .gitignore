@@ -1,0 +1,28 @@
+# Environments
+.env
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+*.sqlite3
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# Unrelated workspace folders
+examination_portal/
+sanjeevani/
+trade-analysis-app/
+trade-analysis/
+trading-journal/
+scratch/
+bhavcopies/
