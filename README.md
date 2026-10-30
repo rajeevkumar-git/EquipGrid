@@ -1,6 +1,7 @@
 # 🔬 EquipGrid — Institutional Resource & Equipment Sharing Platform
 > **A trusted platform enabling colleges, research labs, and makerspaces to safely share underused high-end equipment, specialized labs, and tools with verified custody, fair allocation, and an immutable audit trail.**
 
+[![Maintained by](https://img.shields.io/badge/Author-rajeevkumar--git-blue.svg)](https://github.com/rajeevkumar-git)
 [![Hackathon Project](https://img.shields.io/badge/Hackathon-48--Hour%20Sprint-blue.svg)](https://github.com/rajeevkumar-git/EquipGrid)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB.svg)](https://vitejs.dev)
