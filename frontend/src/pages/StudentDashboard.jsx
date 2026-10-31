@@ -1,29 +1,38 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { ConditionChecklistModal } from '../components/ConditionChecklistModal';
 import { IncidentModal } from '../components/IncidentModal';
 import { AuditTimeline } from '../components/AuditTimeline';
+import { FeedbackModal } from '../components/FeedbackModal';
 import { 
   Calendar, 
   Clock, 
   CheckCircle2, 
-  Hourglass, 
-  AlertCircle, 
   AlertTriangle,
   History, 
-  ArrowRight,
+  ShieldCheck,
+  Star,
+  Coins,
   Sparkles,
-  ShieldCheck
+  Gift,
+  LogIn
 } from 'lucide-react';
 
 export const StudentDashboard = () => {
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeChecklist, setActiveChecklist] = useState(null); // { booking, mode: 'checkin' | 'return' }
   const [activeIncidentBooking, setActiveIncidentBooking] = useState(null);
   const [activeAuditBookingId, setActiveAuditBookingId] = useState(null);
+  const [activeFeedbackBooking, setActiveFeedbackBooking] = useState(null);
+  
+  const [loyaltyTokens, setLoyaltyTokens] = useState(() => {
+    const saved = localStorage.getItem('equipgrid_loyalty_tokens');
+    return saved ? parseInt(saved, 10) : 450;
+  });
 
   useEffect(() => {
     loadBookings();
@@ -48,6 +57,15 @@ export const StudentDashboard = () => {
     }
   };
 
+  const handleFeedbackSuccess = ({ bookingId, tokensEarned }) => {
+    const newTotal = loyaltyTokens + tokensEarned;
+    setLoyaltyTokens(newTotal);
+    localStorage.setItem('equipgrid_loyalty_tokens', newTotal.toString());
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, has_feedback: true } : b))
+    );
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'approved':
@@ -69,18 +87,58 @@ export const StudentDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Guest Explorer Mode Banner */}
+      {!user && (
+        <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-indigo-700/50">
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+              <Sparkles className="w-3 h-3 text-amber-300" /> Guest Explorer Mode
+            </span>
+            <h2 className="text-base font-bold text-white">Previewing Student Custody & Allocation Portal</h2>
+            <p className="text-xs text-slate-300">
+              Explore how university researchers track custody timelines, fair quotas, and loyalty rewards before logging in.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => openAuthModal('login')}
+              className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow transition flex items-center gap-1.5"
+            >
+              <LogIn className="w-3.5 h-3.5" /> Sign In to Book
+            </button>
+            <Link
+              to="/catalog"
+              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs border border-white/20 transition"
+            >
+              Explore Catalog
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Header & Loyalty Reputation Strip */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Student Custody & Bookings</h1>
           <p className="text-xs text-slate-500">Track your requests, check in to active slots, and verify returned equipment.</p>
         </div>
 
-        {/* Reliability Pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm text-xs">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span className="text-slate-600">Borrower Trust Score:</span>
-          <strong className="text-emerald-700 font-bold">{(user?.trust_score || 0.95) * 100}%</strong>
+        {/* Reputation & Loyalty Hub */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm text-xs">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span className="text-slate-600">Trust Score:</span>
+            <strong className="text-emerald-700 font-bold">{(user?.trust_score || 0.98) * 100}%</strong>
+          </div>
+
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-50 to-indigo-50 border border-amber-200 text-xs shadow-sm">
+            <Coins className="w-4 h-4 text-amber-500" />
+            <span className="text-slate-700 font-medium">Loyalty Tokens:</span>
+            <strong className="text-indigo-700 font-extrabold">{loyaltyTokens} 💎</strong>
+            <span className="hidden sm:inline text-[10px] text-amber-700 font-semibold bg-amber-100/70 px-1.5 py-0.5 rounded">
+              Perks Active: Deposit Waiver up to ₹1,000
+            </span>
+          </div>
         </div>
       </div>
 
@@ -121,28 +179,31 @@ export const StudentDashboard = () => {
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
                         {start.toLocaleDateString([], { month: 'short', day: 'numeric', weekday: 'short' })}
                       </span>
-                      <span>
+                      <span className="flex items-center gap-1 font-medium">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
                         {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} –{' '}
                         {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      {b.waitlist_position && (
-                        <span className="text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-                          Waitlist Position: #{b.waitlist_position}
+                      {b.deposit_held > 0 && (
+                        <span className="font-semibold text-slate-600">
+                          Deposit: ₹{b.deposit_held}
                         </span>
                       )}
                     </div>
 
-                    <p className="text-xs text-slate-600 italic">"{b.purpose_text}"</p>
+                    <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 max-w-2xl">
+                      <strong>Purpose:</strong> {b.purpose_text}
+                    </p>
 
-                    {b.ai_rejection_explanation && (
-                      <p className="text-xs text-rose-700 bg-rose-50 p-2 rounded border border-rose-200">
-                        {b.ai_rejection_explanation}
+                    {b.status === 'rejected' && b.ai_rejection_explanation && (
+                      <p className="text-xs text-rose-700 bg-rose-50 p-2.5 rounded-lg border border-rose-100 max-w-2xl">
+                        <strong>Feedback:</strong> {b.ai_rejection_explanation}
                       </p>
                     )}
                   </div>
 
                   {/* Action Buttons for Lifecycle */}
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
                     {b.status === 'approved' && (
                       <button
                         onClick={() => setActiveChecklist({ booking: b, mode: 'checkin' })}
@@ -158,6 +219,20 @@ export const StudentDashboard = () => {
                         className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1 transition"
                       >
                         Step 8: Return & AI Verify
+                      </button>
+                    )}
+
+                    {b.status === 'completed' && (
+                      <button
+                        onClick={() => setActiveFeedbackBooking(b)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1 transition ${
+                          b.has_feedback
+                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 shadow-sm'
+                        }`}
+                      >
+                        <Star className={`w-3.5 h-3.5 ${b.has_feedback ? 'fill-slate-400 text-slate-400' : 'fill-amber-400 text-amber-500'}`} />
+                        {b.has_feedback ? 'Feedback Sent' : 'Rate & Earn +25 💎'}
                       </button>
                     )}
 
@@ -188,7 +263,7 @@ export const StudentDashboard = () => {
         )}
       </div>
 
-      {/* Checkin / Return Checklist Modal */}
+      {/* Check-In / Return Condition Checklist Modal (Steps 7 & 8) */}
       {activeChecklist && (
         <ConditionChecklistModal
           booking={activeChecklist.booking}
@@ -196,6 +271,12 @@ export const StudentDashboard = () => {
           onClose={() => setActiveChecklist(null)}
           onSuccess={() => {
             setActiveChecklist(null);
+            // Award loyalty points for clean on-time return
+            if (activeChecklist.mode === 'return') {
+              const newTotal = loyaltyTokens + 50;
+              setLoyaltyTokens(newTotal);
+              localStorage.setItem('equipgrid_loyalty_tokens', newTotal.toString());
+            }
             loadBookings();
           }}
         />
@@ -213,7 +294,16 @@ export const StudentDashboard = () => {
         />
       )}
 
-      {/* Audit Trail Modal */}
+      {/* Equipment & Lab Feedback Modal */}
+      {activeFeedbackBooking && (
+        <FeedbackModal
+          booking={activeFeedbackBooking}
+          onClose={() => setActiveFeedbackBooking(null)}
+          onSubmitSuccess={handleFeedbackSuccess}
+        />
+      )}
+
+      {/* Immutable Audit Ledger Slide-over (Step 10) */}
       {activeAuditBookingId && (
         <AuditTimeline
           bookingId={activeAuditBookingId}

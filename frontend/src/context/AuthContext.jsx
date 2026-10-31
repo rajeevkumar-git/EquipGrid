@@ -12,6 +12,15 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login');
+  
+  // Judge Mode states
+  const [isJudgeMode, setIsJudgeMode] = useState(() => {
+    return localStorage.getItem('equipgrid_judge_mode') === 'true';
+  });
+  const [isJudgeModalOpen, setIsJudgeModalOpen] = useState(false);
+
+  // Pending booking resource (for guest users attempting to book)
+  const [pendingBookingResource, setPendingBookingResource] = useState(null);
 
   // Available demo personas for judge evaluation mode
   const demoPersonas = [
@@ -27,15 +36,31 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('equipgrid_user', JSON.stringify(res.data));
     } catch (err) {
       console.warn('Backend /me session check:', err?.message || err);
-      // Keep cached session if available
     }
   };
+
+  // Check URL query param for automatic judge token activation (e.g. ?judge_token=EQUIPGRID2026)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const queryToken = params.get('judge_token') || params.get('judge') || params.get('token');
+      if (queryToken && queryToken.trim().toUpperCase() === 'EQUIPGRID2026') {
+        setIsJudgeMode(true);
+        localStorage.setItem('equipgrid_judge_mode', 'true');
+        if (!user) {
+          switchDemoUser('student@equipgrid.demo');
+        }
+      }
+    } catch (e) {
+      // Ignore URL parsing errors
+    }
+  }, []);
 
   useEffect(() => {
     if (token) {
       fetchCurrentUser();
-    } else if (!user) {
-      // Default to student persona on initial evaluation for zero friction
+    } else if (isJudgeMode && !user) {
+      // If judge mode is unlocked and no user is set, default to Student Demo
       const defaultUser = {
         id: 'student-demo',
         email: 'student@equipgrid.demo',
@@ -47,15 +72,49 @@ export const AuthProvider = ({ children }) => {
       setUser(defaultUser);
       localStorage.setItem('equipgrid_user', JSON.stringify(defaultUser));
     }
-  }, [token]);
+  }, [token, isJudgeMode]);
 
-  const openAuthModal = (initialTab = 'login') => {
+  // Unlock Judge Mode via Token
+  const unlockJudgeMode = (tokenCandidate) => {
+    if (!tokenCandidate) return { success: false, error: 'Please enter a token.' };
+    
+    const normalized = tokenCandidate.trim().toUpperCase();
+    if (normalized === 'EQUIPGRID2026') {
+      setIsJudgeMode(true);
+      localStorage.setItem('equipgrid_judge_mode', 'true');
+      if (!user) {
+        switchDemoUser('student@equipgrid.demo');
+      }
+      return { success: true };
+    }
+    return { success: false, error: 'Invalid Judge Token. Please check and try again.' };
+  };
+
+  // Exit Judge Mode
+  const exitJudgeMode = () => {
+    setIsJudgeMode(false);
+    localStorage.removeItem('equipgrid_judge_mode');
+  };
+
+  const openJudgeModal = () => setIsJudgeModalOpen(true);
+  const closeJudgeModal = () => setIsJudgeModalOpen(false);
+
+  const openAuthModal = (initialTab = 'login', targetResource = null) => {
+    if (targetResource) {
+      setPendingBookingResource(targetResource);
+    }
     setAuthModalTab(initialTab);
     setIsAuthModalOpen(true);
   };
 
   const closeAuthModal = () => {
     setIsAuthModalOpen(false);
+  };
+
+  const clearPendingBooking = () => {
+    const res = pendingBookingResource;
+    setPendingBookingResource(null);
+    return res;
   };
 
   // Standard Login (Email & Password)
@@ -155,6 +214,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('equipgrid_user');
     setToken(null);
     setUser(null);
+    setPendingBookingResource(null);
   };
 
   return (
@@ -168,6 +228,15 @@ export const AuthProvider = ({ children }) => {
         authModalTab,
         openAuthModal,
         closeAuthModal,
+        isJudgeMode,
+        isJudgeModalOpen,
+        openJudgeModal,
+        closeJudgeModal,
+        unlockJudgeMode,
+        exitJudgeMode,
+        pendingBookingResource,
+        setPendingBookingResource,
+        clearPendingBooking,
         login,
         register,
         switchDemoUser,

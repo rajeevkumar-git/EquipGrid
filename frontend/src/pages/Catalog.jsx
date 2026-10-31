@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { MOCK_RESOURCES } from '../api/mockData';
 import { ResourceCard } from '../components/ResourceCard';
 import { BookingModal } from '../components/BookingModal';
@@ -10,18 +11,39 @@ import {
   Wrench, 
   Building, 
   ShieldCheck,
-  Scale
+  Scale,
+  GraduationCap,
+  Coins
 } from 'lucide-react';
 
 export const Catalog = () => {
+  const { user, openAuthModal, pendingBookingResource, clearPendingBooking } = useAuth();
   const [resources, setResources] = useState([]);
   const [institutions, setInstitutions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedInstitution, setSelectedInstitution] = useState('all');
+  const [selectedStream, setSelectedStream] = useState('all');
+  const [selectedDeposit, setSelectedDeposit] = useState('all');
   const [sortBy, setSortBy] = useState('fair_exposure');
   const [selectedResource, setSelectedResource] = useState(null);
+
+  // Auto-open booking modal if guest logged in after selecting equipment
+  useEffect(() => {
+    if (user && pendingBookingResource) {
+      setSelectedResource(pendingBookingResource);
+      clearPendingBooking();
+    }
+  }, [user, pendingBookingResource]);
+
+  const handleBookClick = (resource) => {
+    if (!user) {
+      openAuthModal('login', resource);
+      return;
+    }
+    setSelectedResource(resource);
+  };
 
   useEffect(() => {
     loadInstitutions();
@@ -29,7 +51,7 @@ export const Catalog = () => {
 
   useEffect(() => {
     loadResources();
-  }, [selectedCategory, selectedInstitution, sortBy, search]);
+  }, [selectedCategory, selectedInstitution, selectedStream, selectedDeposit, sortBy, search]);
 
   const loadInstitutions = async () => {
     try {
@@ -55,9 +77,19 @@ export const Catalog = () => {
 
       const res = await api.get('/api/resources', { params });
       if (res.data && res.data.length > 0) {
-        setResources(res.data);
+        let list = res.data;
+        if (selectedStream !== 'all') {
+          list = list.filter(r => (r.stream || '').toLowerCase().includes(selectedStream.toLowerCase()));
+        }
+        if (selectedDeposit === 'free') {
+          list = list.filter(r => !r.requires_deposit || r.deposit_amount === 0);
+        } else if (selectedDeposit === 'under_1000') {
+          list = list.filter(r => r.requires_deposit && r.deposit_amount <= 1000);
+        } else if (selectedDeposit === 'over_1000') {
+          list = list.filter(r => r.requires_deposit && r.deposit_amount > 1000);
+        }
+        setResources(list);
       } else {
-        // Fallback to rich mock catalog filtered locally
         filterLocalMock();
       }
     } catch (err) {
@@ -76,14 +108,29 @@ export const Catalog = () => {
     if (selectedInstitution !== 'all') {
       list = list.filter(r => r.institution === selectedInstitution);
     }
+    if (selectedStream !== 'all') {
+      list = list.filter(r => (r.stream || '').toLowerCase().includes(selectedStream.toLowerCase()));
+    }
+    if (selectedDeposit === 'free') {
+      list = list.filter(r => !r.requires_deposit || r.deposit_amount === 0);
+    } else if (selectedDeposit === 'under_1000') {
+      list = list.filter(r => r.requires_deposit && r.deposit_amount <= 1000);
+    } else if (selectedDeposit === 'over_1000') {
+      list = list.filter(r => r.requires_deposit && r.deposit_amount > 1000);
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(r => r.name.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q));
+      list = list.filter(r => 
+        r.name.toLowerCase().includes(q) || 
+        r.description?.toLowerCase().includes(q) ||
+        (r.stream || '').toLowerCase().includes(q) ||
+        (r.lab_manager || '').toLowerCase().includes(q)
+      );
     }
     if (sortBy === 'underutilized') {
       list.sort((a, b) => (a.utilization_rate || 0) - (b.utilization_rate || 0));
     } else if (sortBy === 'fair_exposure') {
-      // Prioritize underutilized equipment from varied institutions
       list.sort((a, b) => (a.utilization_rate || 0) - (b.utilization_rate || 0));
     }
     setResources(list);
@@ -116,7 +163,7 @@ export const Catalog = () => {
             Unlock High-End Equipment & Spaces Safely.
           </h1>
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            Borrow specialized 3D printers, cleanrooms, oscilloscopes, and AI workstations. Built with <strong>fair institutional exposure</strong> so small colleges and community makerspaces get equal visibility alongside premier labs.
+            Borrow specialized 3D printers, cleanrooms, oscilloscopes, and AI workstations. Built with <strong>stream-wise filtering and fair institutional exposure</strong> so small colleges and community makerspaces get equal visibility.
           </p>
         </div>
       </div>
@@ -151,7 +198,7 @@ export const Catalog = () => {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Search microscope, printer..."
+              placeholder="Search microscope, CSE, lab manager..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
@@ -159,39 +206,81 @@ export const Catalog = () => {
           </div>
         </div>
 
-        {/* Filters Bar: Institution + Sorting */}
-        <div className="flex items-center justify-between gap-4 flex-wrap bg-white p-3 rounded-xl border border-slate-200 text-xs shadow-sm">
+        {/* Filters Grid: Stream, Institution, Deposit, Sorting */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-white p-3.5 rounded-xl border border-slate-200 text-xs shadow-sm">
+          {/* Stream Filter */}
+          <div className="flex items-center gap-2">
+            <GraduationCap className="w-4 h-4 text-slate-500 shrink-0" />
+            <div className="flex-1">
+              <span className="block text-[10px] font-bold uppercase text-slate-400">Stream / Dept:</span>
+              <select
+                value={selectedStream}
+                onChange={(e) => setSelectedStream(e.target.value)}
+                className="w-full p-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="all">All Academic Streams</option>
+                <option value="CSE">Computer Science & AI (CSE)</option>
+                <option value="ECE">Electronics & VLSI (ECE)</option>
+                <option value="Mechanical">Mechanical & Prototyping</option>
+                <option value="Nanotech">Nanotechnology & Physics</option>
+                <option value="Biotech">Biotechnology & Life Sciences</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Deposit / Pricing Filter */}
+          <div className="flex items-center gap-2">
+            <Coins className="w-4 h-4 text-slate-500 shrink-0" />
+            <div className="flex-1">
+              <span className="block text-[10px] font-bold uppercase text-slate-400">Deposit / Pricing:</span>
+              <select
+                value={selectedDeposit}
+                onChange={(e) => setSelectedDeposit(e.target.value)}
+                className="w-full p-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="all">All Pricing Types</option>
+                <option value="free">Zero Deposit (Free Access)</option>
+                <option value="under_1000">Deposit ≤ ₹1,000</option>
+                <option value="over_1000">Deposit &gt; ₹1,000</option>
+              </select>
+            </div>
+          </div>
+
           {/* Institution Filter */}
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
             <Building className="w-4 h-4 text-slate-500 shrink-0" />
-            <span className="font-bold text-slate-700 whitespace-nowrap">Filter Institution:</span>
-            <select
-              value={selectedInstitution}
-              onChange={(e) => setSelectedInstitution(e.target.value)}
-              className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-medium focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="all">All Institutions (Open Network)</option>
-              {institutions.map((inst) => (
-                <option key={inst} value={inst}>
-                  {inst}
-                </option>
-              ))}
-            </select>
+            <div className="flex-1">
+              <span className="block text-[10px] font-bold uppercase text-slate-400">Institution:</span>
+              <select
+                value={selectedInstitution}
+                onChange={(e) => setSelectedInstitution(e.target.value)}
+                className="w-full p-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="all">All Institutions</option>
+                {institutions.map((inst) => (
+                  <option key={inst} value={inst}>
+                    {inst}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Anti-Monopoly Sorting Rule */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2">
             <Scale className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="font-bold text-slate-700 whitespace-nowrap">Sorting Engine:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="fair_exposure">🌟 Fair Discovery (Anti-Monopoly Default)</option>
-              <option value="underutilized">🟢 Most Underutilized First (Unlock Idle Gear)</option>
-              <option value="newest">🕒 Recently Listed</option>
-            </select>
+            <div className="flex-1">
+              <span className="block text-[10px] font-bold uppercase text-slate-400">Fair Discovery:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full p-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="fair_exposure">🌟 Fair Discovery (Anti-Monopoly)</option>
+                <option value="underutilized">🟢 Most Underutilized First</option>
+                <option value="newest">🕒 Recently Listed</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -205,7 +294,7 @@ export const Catalog = () => {
         <div className="py-16 text-center bg-white rounded-xl border border-slate-200 p-8 space-y-2">
           <Layers className="w-10 h-10 text-slate-300 mx-auto" />
           <h3 className="font-bold text-slate-800 text-sm">No equipment found matching criteria</h3>
-          <p className="text-xs text-slate-500">Try adjusting your search query or filter.</p>
+          <p className="text-xs text-slate-500">Try adjusting your stream, deposit filter, or search query.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -213,7 +302,7 @@ export const Catalog = () => {
             <ResourceCard
               key={resource.id}
               resource={resource}
-              onBookClick={(res) => setSelectedResource(res)}
+              onBookClick={handleBookClick}
             />
           ))}
         </div>

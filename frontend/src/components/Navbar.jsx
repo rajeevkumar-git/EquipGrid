@@ -12,11 +12,13 @@ import {
   Bell, 
   LogOut,
   LogIn,
-  UserPlus
+  UserPlus,
+  Scale,
+  Sparkles
 } from 'lucide-react';
 
 export const Navbar = () => {
-  const { user, logout, openAuthModal } = useAuth();
+  const { user, logout, openAuthModal, isJudgeMode, openJudgeModal } = useAuth();
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
@@ -50,18 +52,27 @@ export const Navbar = () => {
     }
   };
 
+  // Adaptive Navigation links
   const navLinks = [
     { to: '/', label: 'Home', icon: Layers },
     { to: '/catalog', label: 'Explore Equipment', icon: Compass },
-    ...(user?.role === 'borrower' || !user
-      ? [{ to: '/student-dashboard', label: 'My Bookings', icon: Calendar }]
-      : []),
-    ...(user?.role === 'owner' || user?.role === 'admin'
+    ...(user
       ? [
-          { to: '/manager-dashboard', label: 'Lab Dashboard', icon: ShieldCheck },
-          { to: '/new-resource', label: 'List Equipment', icon: PlusCircle },
+          ...(user.role === 'borrower'
+            ? [{ to: '/student-dashboard', label: 'My Bookings', icon: Calendar }]
+            : []),
+          ...(user.role === 'owner' || user.role === 'admin'
+            ? [
+                { to: '/manager-dashboard', label: 'Lab Dashboard', icon: ShieldCheck },
+                { to: '/new-resource', label: 'List Equipment', icon: PlusCircle },
+              ]
+            : []),
         ]
-      : []),
+      : [
+          // For guests: enable full exploration of student & manager workflows
+          { to: '/student-dashboard', label: 'Student Portal', icon: Calendar },
+          { to: '/manager-dashboard', label: 'Lab Governance', icon: ShieldCheck },
+        ]),
     { to: '/audit-history', label: 'Audit Trail', icon: History },
   ];
 
@@ -104,8 +115,24 @@ export const Navbar = () => {
             </nav>
           </div>
 
-          {/* Right Controls: Notifications & User Card / Auth Buttons */}
+          {/* Right Controls: Judge Access Pill, Notifications & User Card / Auth Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Judge Mode Trigger (Only shown if not already unlocked) */}
+            {!isJudgeMode ? (
+              <button
+                onClick={openJudgeModal}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition flex items-center gap-1.5 shadow-xs"
+                title="Enter Judge Passcode"
+              >
+                <Scale className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="hidden sm:inline">Judge Access</span>
+              </button>
+            ) : (
+              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                <Sparkles className="w-3 h-3 text-amber-500" /> Judge Active
+              </span>
+            )}
+
             {user ? (
               <>
                 {/* Notification Bell */}

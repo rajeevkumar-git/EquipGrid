@@ -1,9 +1,18 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { X, Lock, Mail, User, Building, Briefcase, Phone, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
+import { X, Lock, Mail, User, Building, Briefcase, Phone, ShieldCheck, ArrowRight, Sparkles, Scale, Info } from 'lucide-react';
 
 export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
-  const { login, register, switchDemoUser, demoPersonas } = useAuth();
+  const { 
+    login, 
+    register, 
+    switchDemoUser, 
+    demoPersonas, 
+    isJudgeMode, 
+    openJudgeModal,
+    pendingBookingResource 
+  } = useAuth();
+  
   const [tab, setTab] = useState(initialTab); // 'login' | 'register'
   
   // Login Form State
@@ -79,6 +88,7 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
           >
             <X className="w-5 h-5" />
           </button>
+          
           <div className="flex items-center gap-2 mb-1.5">
             <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm font-bold">
               EG
@@ -88,6 +98,16 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
           <p className="text-xs text-slate-300">
             Trusted Institutional Resource & Equipment Sharing Network
           </p>
+
+          {/* Pending Booking Banner */}
+          {pendingBookingResource && (
+            <div className="mt-3 p-2.5 rounded-lg bg-blue-600/30 border border-blue-400/40 text-blue-100 text-xs flex items-center gap-2 animate-in fade-in">
+              <Info className="w-4 h-4 text-amber-300 shrink-0" />
+              <span>
+                Please authenticate to complete your reservation for <strong>{pendingBookingResource.name}</strong>.
+              </span>
+            </div>
+          )}
 
           {/* Tab Switcher */}
           <div className="flex mt-4 bg-slate-800/80 p-1 rounded-lg border border-slate-700">
@@ -165,29 +185,44 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              {/* Quick Persona Demo Switch */}
-              <div className="mt-5 pt-4 border-t border-slate-100">
-                <p className="text-[11px] font-semibold text-slate-500 mb-2 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-500" /> Or 1-Click Judge Demo Login:
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {demoPersonas.map((persona) => (
-                    <button
-                      key={persona.email}
-                      type="button"
-                      onClick={() => handleQuickDemo(persona.email)}
-                      className="p-2 border border-slate-200 rounded-lg text-center hover:border-blue-500 hover:bg-blue-50/50 transition group"
-                    >
-                      <span className="text-base block mb-0.5">
-                        {persona.role === 'borrower' ? '👨‍🎓' : persona.role === 'owner' ? '🔬' : '🛡️'}
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-600 block line-clamp-1">
-                        {persona.label.split(' ')[0]}
-                      </span>
-                    </button>
-                  ))}
+              {/* Judge Mode Switcher (Only visible when Judge Mode is enabled) */}
+              {isJudgeMode ? (
+                <div className="mt-5 pt-4 border-t border-slate-100">
+                  <p className="text-[11px] font-semibold text-indigo-700 mb-2 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-amber-500" /> Judge Evaluation 1-Click Login:
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {demoPersonas.map((persona) => (
+                      <button
+                        key={persona.email}
+                        type="button"
+                        onClick={() => handleQuickDemo(persona.email)}
+                        className="p-2 border border-indigo-100 bg-indigo-50/40 rounded-lg text-center hover:border-indigo-400 hover:bg-indigo-50 transition group"
+                      >
+                        <span className="text-base block mb-0.5">
+                          {persona.role === 'borrower' ? '👨‍🎓' : persona.role === 'owner' ? '🔬' : '🛡️'}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-700 group-hover:text-indigo-600 block line-clamp-1">
+                          {persona.label.split(' ')[0]}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      openJudgeModal();
+                    }}
+                    className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 hover:underline"
+                  >
+                    <Scale className="w-3 h-3" /> Evaluating for Hackathon? Enter Judge Token
+                  </button>
+                </div>
+              )}
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-3">

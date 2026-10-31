@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { AuditTimeline } from '../components/AuditTimeline';
@@ -13,17 +14,21 @@ import {
   Sparkles,
   Inbox,
   Wrench,
-  CheckCircle2
+  CheckCircle2,
+  LogIn,
+  Scale
 } from 'lucide-react';
 
 export const ManagerDashboard = () => {
-  const { user } = useAuth();
+  const { user, openAuthModal, openJudgeModal, isJudgeMode } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeAuditBookingId, setActiveAuditBookingId] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [resolvingIncidentId, setResolvingIncidentId] = useState(null);
+
+  const isAuthorizedManager = user?.role === 'owner' || user?.role === 'admin';
 
   useEffect(() => {
     loadManagerData();
@@ -41,12 +46,17 @@ export const ManagerDashboard = () => {
       }
 
       const iRes = await api.get('/api/incidents');
-      setIncidents(iRes.data || []);
+      if (iRes.data && iRes.data.length > 0) {
+        setIncidents(iRes.data);
+      } else {
+        const { MOCK_INCIDENTS } = await import('../api/mockData');
+        setIncidents(MOCK_INCIDENTS || []);
+      }
     } catch (err) {
       console.warn('Failed loading manager data, using mock:', err);
-      const { MOCK_BOOKINGS } = await import('../api/mockData');
+      const { MOCK_BOOKINGS, MOCK_INCIDENTS } = await import('../api/mockData');
       setBookings(MOCK_BOOKINGS);
-      setIncidents([]);
+      setIncidents(MOCK_INCIDENTS || []);
     } finally {
       setLoading(false);
     }
@@ -105,6 +115,37 @@ export const ManagerDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Guest Explorer Mode Banner */}
+      {!isAuthorizedManager && (
+        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 rounded-2xl shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-indigo-700/50">
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+              <Sparkles className="w-3 h-3 text-amber-300" /> Lab In-Charge Governance Preview
+            </span>
+            <h2 className="text-base font-bold text-white">Previewing Lab Custodian & Approval Portal</h2>
+            <p className="text-xs text-slate-300">
+              You are exploring how faculty supervisors review inter-institutional bookings, enforce anti-monopoly fair quotas, and inspect damage disputes.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => openAuthModal('login')}
+              className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow transition flex items-center gap-1.5"
+            >
+              <LogIn className="w-3.5 h-3.5" /> Sign In as Manager
+            </button>
+            {!isJudgeMode && (
+              <button
+                onClick={openJudgeModal}
+                className="px-3.5 py-2 rounded-xl bg-indigo-600/60 hover:bg-indigo-600 text-white font-bold text-xs border border-indigo-400/40 shadow transition flex items-center gap-1.5"
+              >
+                <Scale className="w-3.5 h-3.5 text-amber-300" /> Unlock Judge Mode
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -150,13 +191,13 @@ export const ManagerDashboard = () => {
                 <div className="space-y-2 flex-1 text-xs">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm text-slate-900 capitalize">
-                      {inc.incident_type.replace('_', ' ')} Incident
+                      {inc.incident_type?.replace('_', ' ') || 'Safety'} Incident
                     </span>
                     <span className="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
                       {inc.severity || 'Moderate'}
                     </span>
                     <span className="text-slate-400 text-[11px]">
-                      Reported: {new Date(inc.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      Reported: {new Date(inc.created_at || Date.now()).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
 

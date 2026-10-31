@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { BookingModal } from '../components/BookingModal';
 import { 
   ArrowLeft, 
@@ -11,11 +12,14 @@ import {
   CheckCircle2, 
   AlertTriangle,
   FileText,
-  UserCheck
+  UserCheck,
+  Tag,
+  Coins
 } from 'lucide-react';
 
 export const ResourceDetail = () => {
   const { id } = useParams();
+  const { user, openAuthModal, pendingBookingResource, clearPendingBooking } = useAuth();
   const [resource, setResource] = useState(null);
   const [eligibility, setEligibility] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +28,14 @@ export const ResourceDetail = () => {
   useEffect(() => {
     loadData();
   }, [id]);
+
+  // Auto-open booking modal if guest logged in after selecting equipment
+  useEffect(() => {
+    if (user && pendingBookingResource && resource && pendingBookingResource.id === resource.id) {
+      setShowBookingModal(true);
+      clearPendingBooking();
+    }
+  }, [user, pendingBookingResource, resource]);
 
   const loadData = async () => {
     setLoading(true);
@@ -40,6 +52,14 @@ export const ResourceDetail = () => {
     }
   };
 
+  const handleBookClick = () => {
+    if (!user) {
+      openAuthModal('login', resource);
+      return;
+    }
+    setShowBookingModal(true);
+  };
+
   if (loading) {
     return <div className="py-20 text-center text-xs text-slate-400">Loading resource specifications...</div>;
   }
@@ -51,7 +71,7 @@ export const ResourceDetail = () => {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Back button */}
-      <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 transition">
+      <Link to="/catalog" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 transition">
         <ArrowLeft className="w-4 h-4" /> Back to Catalog
       </Link>
 
@@ -63,10 +83,15 @@ export const ResourceDetail = () => {
             alt={resource.name}
             className="w-full h-full object-cover"
           />
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 left-4 flex gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-900/80 text-white backdrop-blur-sm">
               {resource.category}
             </span>
+            {resource.stream && (
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-900/80 text-blue-200 backdrop-blur-sm">
+                {resource.stream}
+              </span>
+            )}
           </div>
         </div>
 
@@ -83,24 +108,40 @@ export const ResourceDetail = () => {
 
             <p className="text-xs text-slate-600 leading-relaxed">{resource.description}</p>
 
+            {/* In-Charge Details */}
+            {(resource.lab_manager || resource.supervisor_contact) && (
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-indigo-600 shrink-0" />
+                <div>
+                  <span className="font-bold text-slate-800">Lab In-Charge: </span>
+                  <span>{resource.lab_manager || 'Faculty Supervisor'}</span>
+                  {resource.supervisor_contact && (
+                    <span className="text-[11px] text-slate-500 block">Contact: {resource.supervisor_contact}</span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Quick Specs */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="grid grid-cols-2 gap-3 pt-1">
               <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Max Duration</span>
                 <span className="font-semibold text-slate-800">{resource.max_booking_hours} Hours</span>
               </div>
               <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Approval Mode</span>
-                <span className="font-semibold text-slate-800 capitalize">{resource.approval_mode} Review</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Deposit Policy</span>
+                <span className="font-semibold text-slate-800">
+                  {resource.requires_deposit ? `₹${resource.deposit_amount}` : 'Zero Deposit (Free)'}
+                </span>
               </div>
             </div>
           </div>
 
           <button
-            onClick={() => setShowBookingModal(true)}
+            onClick={handleBookClick}
             className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs tracking-wide shadow-md transition"
           >
-            Request Access / Book Slot
+            {user ? 'Request Access / Book Slot' : 'Sign In to Book This Equipment'}
           </button>
         </div>
       </div>

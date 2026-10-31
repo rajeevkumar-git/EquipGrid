@@ -2,28 +2,30 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
-  Layers, 
-  ShieldCheck, 
-  Scale, 
-  Cpu, 
-  Wrench, 
   Building, 
+  ShieldCheck, 
+  Compass, 
   ArrowRight, 
-  Sparkles, 
   CheckCircle2, 
   Clock, 
-  FileText, 
-  History,
-  Users,
-  Compass
+  Award, 
+  Layers, 
+  Sparkles, 
+  Scale, 
+  Users, 
+  Search,
+  FileCheck,
+  Zap
 } from 'lucide-react';
 
 export const LandingPage = () => {
-  const { user, switchDemoUser, openAuthModal } = useAuth();
+  const { user, switchDemoUser, openAuthModal, isJudgeMode, openJudgeModal } = useAuth();
   const navigate = useNavigate();
 
   const handlePersonaEntry = async (email, destination) => {
-    await switchDemoUser(email);
+    if (isJudgeMode) {
+      await switchDemoUser(email);
+    }
     navigate(destination);
   };
 
@@ -75,12 +77,21 @@ export const LandingPage = () => {
               <Compass className="w-4 h-4" />
               Explore Equipment Catalog
             </Link>
-            <button
-              onClick={() => openAuthModal('login')}
-              className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-sm transition"
-            >
-              Sign In to Your University Account
-            </button>
+            {!user ? (
+              <button
+                onClick={() => openAuthModal('login')}
+                className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-sm transition"
+              >
+                Sign In to University Account
+              </button>
+            ) : (
+              <Link
+                to={user.role === 'borrower' ? '/student-dashboard' : '/manager-dashboard'}
+                className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition"
+              >
+                Go to Your Dashboard ({user.full_name})
+              </Link>
+            )}
           </div>
 
           {/* Quick Metrics */}
@@ -98,8 +109,8 @@ export const LandingPage = () => {
               <p className="text-xs text-slate-400">Fair Discovery Algorithm</p>
             </div>
             <div>
-              <p className="text-2xl font-black text-amber-400">AI Sentinel</p>
-              <p className="text-xs text-slate-400">Gemini Condition Check</p>
+              <p className="text-2xl font-black text-amber-400">AI Powered</p>
+              <p className="text-xs text-slate-400">Condition Discrepancy Checks</p>
             </div>
           </div>
         </div>
@@ -168,7 +179,7 @@ export const LandingPage = () => {
                 onClick={() => handlePersonaEntry('student@equipgrid.demo', '/student-dashboard')}
                 className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm"
               >
-                <span>Enter as Student (Aarav Singh)</span>
+                <span>{isJudgeMode ? 'Enter as Student (Aarav Singh)' : 'Enter Student Portal'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -204,7 +215,7 @@ export const LandingPage = () => {
                 onClick={() => handlePersonaEntry('labmanager@equipgrid.demo', '/manager-dashboard')}
                 className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm"
               >
-                <span>Enter as Lab Manager (Dr. Priya Roy)</span>
+                <span>{isJudgeMode ? 'Enter as Lab Manager (Dr. Priya Roy)' : 'Enter Lab Governance Portal'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -240,7 +251,7 @@ export const LandingPage = () => {
                 onClick={() => handlePersonaEntry('admin@equipgrid.demo', '/audit-history')}
                 className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm"
               >
-                <span>Enter as Admin (Prof. Ramesh Kumar)</span>
+                <span>{isJudgeMode ? 'Enter as Admin (Prof. Ramesh Kumar)' : 'View Cryptographic Audit Trail'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
