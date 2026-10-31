@@ -18,6 +18,11 @@ class Resource(Base):
     description = Column(Text, nullable=True)
     category = Column(String, nullable=False, default="equipment")
 
+    # Academic Stream & Pricing Split
+    stream = Column(String, default="Mechanical & Prototyping", index=True)
+    hourly_rate = Column(Float, default=0.0)
+    lab_manager = Column(String, nullable=True)
+
     # Anti-monopoly & fair institutional exposure
     institution = Column(String, default="IIT Delhi", index=True)
     utilization_rate = Column(Float, default=0.20)  # 0.0 to 1.0 (e.g. 0.20 = 20% utilized)
@@ -66,7 +71,5 @@ class AvailabilitySlot(Base):
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     is_booked = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationships
     resource = relationship("Resource", back_populates="availability_slots")

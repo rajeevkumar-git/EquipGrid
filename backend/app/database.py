@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from dotenv import load_dotenv
 import os
@@ -32,6 +32,21 @@ def get_db():
 
 
 def init_db():
-    """Create all tables on startup."""
+    """Create all tables on startup and safely add any missing columns."""
     from app.models import user, resource, booking, condition, incident, audit, notification  # noqa
     Base.metadata.create_all(bind=engine)
+
+    # Safely migrate new columns if using existing SQLite database
+    if DATABASE_URL.startswith("sqlite"):
+        with engine.connect() as conn:
+            for col, col_type in [
+                ("stream", "VARCHAR DEFAULT 'Mechanical & Prototyping'"),
+                ("hourly_rate", "FLOAT DEFAULT 0.0"),
+                ("lab_manager", "VARCHAR"),
+            ]:
+                try:
+                    conn.execute(text(f"ALTER TABLE resources ADD COLUMN {col} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    # Column already exists
+                    pass

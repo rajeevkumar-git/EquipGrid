@@ -13,7 +13,9 @@ import {
   ShieldCheck,
   Scale,
   GraduationCap,
-  Coins
+  Coins,
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 
 export const Catalog = () => {
@@ -53,16 +55,32 @@ export const Catalog = () => {
     loadResources();
   }, [selectedCategory, selectedInstitution, selectedStream, selectedDeposit, sortBy, search]);
 
+  const matchesStream = (stream, selected) => {
+    if (!selected || selected === 'all') return true;
+    if (!stream) return false;
+    const s = stream.toLowerCase();
+    const sel = selected.toLowerCase();
+    if (sel === 'cse') return s.includes('cse') || s.includes('computer') || s.includes('ai') || s.includes('software');
+    if (sel === 'ece') return s.includes('ece') || s.includes('electronic') || s.includes('vlsi') || s.includes('microwave') || s.includes('rf');
+    if (sel === 'mechanical') return s.includes('mechanical') || s.includes('prototyping') || s.includes('machin') || s.includes('additive') || s.includes('cnc');
+    if (sel === 'nanotech') return s.includes('nanotech') || s.includes('physics') || s.includes('material') || s.includes('sem') || s.includes('afm') || s.includes('xrd');
+    if (sel === 'biotech') return s.includes('biotech') || s.includes('bio') || s.includes('life') || s.includes('genom') || s.includes('cell');
+    if (sel === 'civil') return s.includes('civil') || s.includes('environment') || s.includes('geo') || s.includes('survey');
+    return s.includes(sel);
+  };
+
   const loadInstitutions = async () => {
     try {
       const res = await api.get('/api/resources/institutions');
       if (res.data && res.data.length > 0) {
         setInstitutions(res.data);
       } else {
-        setInstitutions(['IIT Delhi Fab Lab', 'DTU Materials Characterization Lab', 'BITS Pilani Microfabrication Centre', 'NIT Trichy RF & Microwave Lab', 'NSUT High Performance Computing Center']);
+        const unique = [...new Set(MOCK_RESOURCES.map(r => r.institution).filter(Boolean))];
+        setInstitutions(unique);
       }
     } catch (err) {
-      setInstitutions(['IIT Delhi Fab Lab', 'DTU Materials Characterization Lab', 'BITS Pilani Microfabrication Centre', 'NIT Trichy RF & Microwave Lab', 'NSUT High Performance Computing Center']);
+      const unique = [...new Set(MOCK_RESOURCES.map(r => r.institution).filter(Boolean))];
+      setInstitutions(unique);
     }
   };
 
@@ -72,6 +90,8 @@ export const Catalog = () => {
       const params = {};
       if (selectedCategory !== 'all') params.category = selectedCategory;
       if (selectedInstitution !== 'all') params.institution = selectedInstitution;
+      if (selectedStream !== 'all') params.stream = selectedStream;
+      if (selectedDeposit !== 'all') params.deposit = selectedDeposit;
       if (sortBy) params.sort_by = sortBy;
       if (search.trim()) params.search = search.trim();
 
@@ -79,7 +99,7 @@ export const Catalog = () => {
       if (res.data && res.data.length > 0) {
         let list = res.data;
         if (selectedStream !== 'all') {
-          list = list.filter(r => (r.stream || '').toLowerCase().includes(selectedStream.toLowerCase()));
+          list = list.filter(r => matchesStream(r.stream, selectedStream));
         }
         if (selectedDeposit === 'free') {
           list = list.filter(r => !r.requires_deposit || r.deposit_amount === 0);
@@ -109,7 +129,7 @@ export const Catalog = () => {
       list = list.filter(r => r.institution === selectedInstitution);
     }
     if (selectedStream !== 'all') {
-      list = list.filter(r => (r.stream || '').toLowerCase().includes(selectedStream.toLowerCase()));
+      list = list.filter(r => matchesStream(r.stream, selectedStream));
     }
     if (selectedDeposit === 'free') {
       list = list.filter(r => !r.requires_deposit || r.deposit_amount === 0);
@@ -125,16 +145,32 @@ export const Catalog = () => {
         r.name.toLowerCase().includes(q) || 
         r.description?.toLowerCase().includes(q) ||
         (r.stream || '').toLowerCase().includes(q) ||
-        (r.lab_manager || '').toLowerCase().includes(q)
+        (r.institution || '').toLowerCase().includes(q) ||
+        (r.lab_manager || '').toLowerCase().includes(q) ||
+        (r.category || '').toLowerCase().includes(q)
       );
     }
-    if (sortBy === 'underutilized') {
-      list.sort((a, b) => (a.utilization_rate || 0) - (b.utilization_rate || 0));
-    } else if (sortBy === 'fair_exposure') {
+    if (sortBy === 'underutilized' || sortBy === 'fair_exposure') {
       list.sort((a, b) => (a.utilization_rate || 0) - (b.utilization_rate || 0));
     }
     setResources(list);
   };
+
+  const resetFilters = () => {
+    setSelectedCategory('all');
+    setSelectedInstitution('all');
+    setSelectedStream('all');
+    setSelectedDeposit('all');
+    setSearch('');
+    setSortBy('fair_exposure');
+  };
+
+  const hasActiveFilters = 
+    selectedCategory !== 'all' || 
+    selectedInstitution !== 'all' || 
+    selectedStream !== 'all' || 
+    selectedDeposit !== 'all' || 
+    search.trim() !== '';
 
   const categories = [
     { id: 'all', label: 'All Resources', icon: Layers },
@@ -206,7 +242,7 @@ export const Catalog = () => {
           </div>
         </div>
 
-        {/* Filters Grid: Stream, Institution, Deposit, Sorting */}
+        {/* Filters Grid: Stream, Pricing, Institution, Sorting */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-white p-3.5 rounded-xl border border-slate-200 text-xs shadow-sm">
           {/* Stream Filter */}
           <div className="flex items-center gap-2">
@@ -224,6 +260,7 @@ export const Catalog = () => {
                 <option value="Mechanical">Mechanical & Prototyping</option>
                 <option value="Nanotech">Nanotechnology & Physics</option>
                 <option value="Biotech">Biotechnology & Life Sciences</option>
+                <option value="Civil">Civil & Environmental Engineering</option>
               </select>
             </div>
           </div>
@@ -238,8 +275,8 @@ export const Catalog = () => {
                 onChange={(e) => setSelectedDeposit(e.target.value)}
                 className="w-full p-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:ring-1 focus:ring-blue-500"
               >
-                <option value="all">All Pricing Types</option>
-                <option value="free">Zero Deposit (Free Access)</option>
+                <option value="all">All Pricing Tiers</option>
+                <option value="free">Zero Caution Deposit (₹0)</option>
                 <option value="under_1000">Deposit ≤ ₹1,000</option>
                 <option value="over_1000">Deposit &gt; ₹1,000</option>
               </select>
@@ -256,7 +293,7 @@ export const Catalog = () => {
                 onChange={(e) => setSelectedInstitution(e.target.value)}
                 className="w-full p-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:ring-1 focus:ring-blue-500"
               >
-                <option value="all">All Institutions</option>
+                <option value="all">All Participating Institutions</option>
                 {institutions.map((inst) => (
                   <option key={inst} value={inst}>
                     {inst}
@@ -283,6 +320,40 @@ export const Catalog = () => {
             </div>
           </div>
         </div>
+
+        {/* Results Count & Active Filters Indicator */}
+        <div className="flex items-center justify-between gap-2 px-1 text-xs text-slate-600">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-800">
+              Showing {resources.length} verified {resources.length === 1 ? 'asset' : 'assets'}
+            </span>
+            {selectedStream !== 'all' && (
+              <span className="bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded-full text-[11px]">
+                Stream: {selectedStream}
+              </span>
+            )}
+            {selectedCategory !== 'all' && (
+              <span className="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded-full text-[11px] capitalize">
+                Category: {selectedCategory}
+              </span>
+            )}
+            {selectedInstitution !== 'all' && (
+              <span className="bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded-full text-[11px]">
+                {selectedInstitution}
+              </span>
+            )}
+          </div>
+
+          {hasActiveFilters && (
+            <button
+              onClick={resetFilters}
+              className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 font-semibold hover:underline"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset Filters
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Resource Grid */}
@@ -291,10 +362,19 @@ export const Catalog = () => {
           Loading institutional catalog with fair exposure ranking...
         </div>
       ) : resources.length === 0 ? (
-        <div className="py-16 text-center bg-white rounded-xl border border-slate-200 p-8 space-y-2">
+        <div className="py-16 text-center bg-white rounded-xl border border-slate-200 p-8 space-y-3">
           <Layers className="w-10 h-10 text-slate-300 mx-auto" />
           <h3 className="font-bold text-slate-800 text-sm">No equipment found matching criteria</h3>
-          <p className="text-xs text-slate-500">Try adjusting your stream, deposit filter, or search query.</p>
+          <p className="text-xs text-slate-500">
+            No resources match the selected stream or filter. Click below to clear filters and view all equipment.
+          </p>
+          <button
+            onClick={resetFilters}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition inline-flex items-center gap-1.5"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Show All 26 Verified Resources
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

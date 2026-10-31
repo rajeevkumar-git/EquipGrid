@@ -73,6 +73,9 @@ class ResourceCreate(BaseModel):
     name: str = Field(..., min_length=3, max_length=150)
     description: Optional[str] = Field(None, max_length=3000)
     category: str = "equipment"
+    stream: Optional[str] = "Mechanical & Prototyping"
+    hourly_rate: Optional[float] = 0.0
+    lab_manager: Optional[str] = None
     institution: Optional[str] = "IIT Delhi"
     utilization_rate: Optional[float] = 0.20
     location: Optional[str] = None
@@ -103,6 +106,9 @@ class ResourceOut(BaseModel):
     name: str
     description: Optional[str]
     category: str
+    stream: Optional[str] = "Mechanical & Prototyping"
+    hourly_rate: Optional[float] = 0.0
+    lab_manager: Optional[str] = None
     institution: Optional[str]
     utilization_rate: Optional[float]
     location: Optional[str]

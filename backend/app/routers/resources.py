@@ -14,6 +14,8 @@ router = APIRouter(prefix="/api/resources", tags=["Resources"])
 @router.get("", response_model=List[ResourceOut])
 def list_resources(
     category: Optional[str] = Query(None),
+    stream: Optional[str] = Query(None),
+    deposit: Optional[str] = Query(None),
     location: Optional[str] = Query(None),
     institution: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -28,11 +30,20 @@ def list_resources(
     """
     query = db.query(Resource).filter(Resource.is_active == True)
 
-    if category:
+    if category and category != "all":
         query = query.filter(Resource.category == category)
+    if stream and stream != "all":
+        query = query.filter(Resource.stream.ilike(f"%{stream}%"))
+    if deposit:
+        if deposit == "free":
+            query = query.filter((Resource.requires_deposit == False) | (Resource.deposit_amount == 0))
+        elif deposit == "under_1000":
+            query = query.filter(Resource.requires_deposit == True, Resource.deposit_amount <= 1000)
+        elif deposit == "over_1000":
+            query = query.filter(Resource.requires_deposit == True, Resource.deposit_amount > 1000)
     if status:
         query = query.filter(Resource.status == status)
-    if institution:
+    if institution and institution != "all":
         query = query.filter(Resource.institution == institution)
     if location:
         query = query.filter(Resource.location.ilike(f"%{location}%"))
@@ -40,7 +51,9 @@ def list_resources(
         query = query.filter(
             Resource.name.ilike(f"%{search}%") |
             Resource.description.ilike(f"%{search}%") |
-            Resource.institution.ilike(f"%{search}%")
+            Resource.institution.ilike(f"%{search}%") |
+            Resource.stream.ilike(f"%{search}%") |
+            Resource.lab_manager.ilike(f"%{search}%")
         )
 
     # Anti-monopoly sorting
@@ -74,6 +87,9 @@ def create_resource(
         name=payload.name,
         description=payload.description,
         category=payload.category,
+        stream=payload.stream or "Mechanical & Prototyping",
+        hourly_rate=payload.hourly_rate or 0.0,
+        lab_manager=payload.lab_manager,
         institution=payload.institution or current_user.institutional_affiliation or "Campus Lab",
         utilization_rate=payload.utilization_rate or 0.15,
         location=payload.location,
