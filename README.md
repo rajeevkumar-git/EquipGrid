@@ -220,8 +220,6 @@ For hackathon judges and institutional evaluators, EquipGrid includes a discreet
 ---
 
 
-> 📘 **Detailed Technical Documentation:** For the exhaustive 12-section architecture guide, mathematical priority scoring models, and QA verification manual, see [`EQUIPGRID_MASTER_TECHNICAL_REPORT_FOR_AMAN.md`](EQUIPGRID_MASTER_TECHNICAL_REPORT_FOR_AMAN.md).
-
 ---
 
 ## 📁 Repository Structure
