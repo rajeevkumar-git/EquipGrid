@@ -1,95 +1,267 @@
 # 🔬 EquipGrid — Institutional Resource & Equipment Sharing Platform
-> **A trusted platform enabling colleges, research labs, and makerspaces to safely share underused high-end equipment, specialized labs, and tools with verified custody, fair allocation, and an immutable audit trail.**
+
+> **A trusted platform enabling universities, research labs, and makerspaces to safely share high-value equipment, specialized facilities, and tools with verified custody, fair allocation, transparent caution deposits, and an immutable audit trail.**
 
 [![Maintained by](https://img.shields.io/badge/Author-rajeevkumar--git-blue.svg)](https://github.com/rajeevkumar-git)
-[![Hackathon Project](https://img.shields.io/badge/Hackathon-48--Hour%20Sprint-blue.svg)](https://github.com/rajeevkumar-git/EquipGrid)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB.svg)](https://vitejs.dev)
 [![Tailwind CSS](https://img.shields.io/badge/UI-Tailwind%20CSS-38B2AC.svg)](https://tailwindcss.com)
 [![AI Integration](https://img.shields.io/badge/AI-Google%20Gemini%201.5%20Flash-8E75C2.svg)](https://ai.google.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-## 📌 Problem Statement Overview
-Colleges, research laboratories, and makerspaces possess millions in specialized equipment (3D printers, CNC routers, optical oscilloscopes, cleanroom benches) that sit idle outside core hours. At the same time, students and early-stage researchers cannot afford to purchase or privately rent them. 
+## 📌 Problem Statement & Vision
 
-Ordinary calendar apps cannot solve this because they lack **trust verification, safety checklists, custody handovers, anti-monopoly quotas, and tamper-evident audit trails**.
+Modern engineering colleges and national research facilities house specialized instruments (e.g., stereolithography 3D printers, RF oscilloscopes, SEM microscopes, cleanroom benches) valued at tens of lakhs of rupees. In practice, these instruments often operate at less than 35% utilization outside scheduled lab hours. Simultaneously, undergraduate innovators, interdisciplinary scholars, and early-stage incubators face insurmountable cost barriers when trying to access this infrastructure.
 
-**EquipGrid solves this with a complete 10-step lifecycle:**
-1. **Owner Lists Resource** with training prerequisites, custody checklists, and fair quotas.
-2. **Borrower Discovers Resource** with real-time eligibility status checks.
-3. **Borrower Submits Request** with project purpose and certification IDs.
-4. **Automated Verification Engine** checks weekly quotas and scheduling conflicts.
-5. **Lab Manager Reviews** in a dedicated dashboard with AI qualification summaries.
-6. **Request is Approved or Waitlisted** with explainable priority scores.
-7. **Check-In Sign-off** with timestamped condition ratings and checklists.
-8. **Return & AI Discrepancy Verification** using Gemini API to compare before/after condition.
-9. **Incident Reporting & Quarantine** to protect valuable institutional property.
-10. **Immutable Activity History** logged for full legal and institutional accountability.
+Traditional calendar and room-booking systems cannot solve this crisis because they fail to address:
+- **Custody Verification:** Who operated the machine, under what condition was it received, and in what state was it returned?
+- **Anti-Monopoly Allocation:** Preventing single research groups from locking down high-demand assets.
+- **Financial Protection:** Transparent caution deposits, automated UPI refund guarantees, and scholar waivers.
+- **Accountability:** Non-repudiable audit logs that satisfy institutional compliance and accreditation standards.
+
+**EquipGrid bridges this gap** by providing a comprehensive, trust-first digital ecosystem uniting students, lab managers, and institutional administrators under a unified governance and allocation framework.
 
 ---
 
-## 👥 Team & Individual Contributions
+## 🏛️ Platform Architecture
 
-| Member | Official Role | Key Contributions |
-| :--- | :--- | :--- |
-| **Rajeev (Lead)** | **Full-Stack & UX Architect** | Platform architecture, React/Next.js frontend, API integration, Judge Persona Switcher, cloud deployment. |
-| **Farhan** | **Backend Engineer (Python)** | FastAPI REST services, relational DB models, booking/approval state machines, check-in/return endpoints. |
-| **Shubham** | **AI/ML & Smart Allocation** | Fair Allocation anti-monopoly engine, immutable audit logging middleware, Gemini API condition/incident analysis. |
-| **Aman** | **Product QA & Documentation** | Curated realistic institutional seed data, full 10-step QA validation, authored submission PDF & testing guide. |
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Client Layer (React + Vite)                  │
+│  - Academic Stream Filtering   - 10-Step Custody Lifecycle UI           │
+│  - Role-Based Dashboards       - Two-Stage Indian Payment Modal        │
+│  - Real-Time Reviewer Switcher - Responsive Glassmorphism Design        │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ REST APIs / Bearer Auth
+┌────────────────────────────────────▼────────────────────────────────────┐
+│                         FastAPI Application Server                      │
+│  ┌───────────────────────┬───────────────────────┬───────────────────┐  │
+│  │   Auth & RBAC Router  │   Bookings Lifecycle  │  Resources Router │  │
+│  │   - Case Normalization│   - State Transitions │  - Stream Filters │  │
+│  │   - Duplicate Defense │   - Quota Enforcement │  - Supervision    │  │
+│  └───────────────────────┴───────────────────────┴───────────────────┘  │
+│  ┌───────────────────────┬───────────────────────┬───────────────────┐  │
+│  │  Fairness Engine      │   Gemini 1.5 Flash AI │  Audit Ledger     │  │
+│  │  - Priority Scoring   │   - Discrepancy Check │  - Immutable Logs │  │
+│  │  - Cooldown Tracking  │   - Rejection Explan. │  - Actor Stamping │  │
+│  └───────────────────────┴───────────────────────┴───────────────────┘  │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ SQLAlchemy ORM
+┌────────────────────────────────────▼────────────────────────────────────┐
+│                    SQLite Database / Storage Layer                      │
+│   - Users & Roles        - Resources & Slots     - Bookings & Custody   │
+│   - Condition Records    - Audit Activity Logs   - Dispute Incidents    │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## ⚡ Quick Start (Local Setup in 2 Minutes)
+## 🌟 Key Features & Capabilities
 
-### 1. Backend (FastAPI)
+### 1. 🎓 Academic Stream-Wise Resource Discovery
+Filter specialized lab resources by departmental stream or domain:
+- **Electronics & Communication (ECE):** High-frequency oscilloscopes, spectrum analyzers, FPGA development boards.
+- **Mechanical & Fabrication:** Industrial SLA 3D printers, 5-axis CNC mills, laser cutters.
+- **Biotechnology & Chemical:** Centrifuges, spectrophotometers, incubators.
+- **Computer Science & AI:** Edge TPU clusters, GPU acceleration servers.
+- **Materials Science:** Surface profilers, spin coaters, hardness testers.
+
+### 2. 🔄 End-to-End 10-Step Custody Lifecycle
+1. **Resource Publication:** Lab in-charges publish instruments with baseline specs, photos, supervisor requirements, and usage rules.
+2. **Catalog Discovery:** Researchers view live availability, hourly rates, and certification requirements.
+3. **Reservation Request:** Borrowers select slots and submit a structured research purpose and project code.
+4. **Fairness Evaluation:** The automated engine calculates priority scores and validates monthly caps.
+5. **Lab In-Charge Review:** Faculty/Managers review pending requests with AI qualification summaries.
+6. **Approval & Slot Hold:** Slots are locked, and calendar confirmations are issued to the researcher.
+7. **Physical Check-In:** Borrower and lab staff inspect the equipment and complete an itemized checklist before power-on.
+8. **Return & AI Discrepancy Verification:** Upon session conclusion, return condition is scored. Google Gemini 1.5 Flash inspects before/after states to flag discrepancies.
+9. **Incident Reporting & Quarantine:** If physical damage or misuse is flagged, the asset is automatically quarantined for technician inspection.
+10. **Immutable Audit Trail:** Every status change, signature, and approval is timestamped and recorded in the audit ledger.
+
+### 3. 💳 Transparent Indian Academic Payment Split
+To safeguard institutional equipment while remaining accessible to self-funded students:
+- **Advance Caution Deposit (100% Refundable):** Held in escrow and automatically unlocked via UPI upon incident-free return verification.
+- **Runtime Operational Fee:** Modest hourly charges covering electricity, specialized consumables, and lab wear-and-tear.
+- **High-Trust Scholar Waiver:** Scholars with a trust score $\ge 0.95$ receive an automatic security deposit waiver.
+- **Direct UPI / NetBanking Mock Gateway:** Fast, realistic checkout workflow with instant status confirmation.
+
+### 4. 🤖 AI-Powered Inspection & Fairness (Google Gemini 1.5 Flash)
+- **Visual & Condition Discrepancy Detection:** Analyzes condition notes and discrepancy reports between check-in and checkout to provide neutral severity ratings.
+- **Fair Rejection Explanations:** Automatically generates constructive, polite reasoning when a booking must be declined due to quota limits or supervisor absence.
+- **Anti-Monopoly Priority Engine:**
+  $$\text{Priority Score} = 0.30 \times \text{Trust} + 0.30 \times \text{WaitTime} - 0.20 \times \text{Usage} + 0.10 \times \text{Relevance} - 0.10 \times \text{Incidents}$$
+
+### 5. 📞 Direct Lab Manager Support Channels
+Every equipment listing and booking detail view includes direct contact action pills:
+- **Call Lab In-charge:** Direct dial to the lab manager or instrument technician.
+- **Official Email:** Auto-formatted inquiry emails with booking and asset IDs pre-filled.
+- **Instant WhatsApp Coordination:** Fast desk chat for lab directions and schedule coordination.
+
+### 6. 🛡️ Hardened Authentication & Route Security
+- **Case-Insensitive Credential Normalization:** Prevents duplicate account creation or spoofing through email casing variations (`User@iitd.ac.in` vs `user@iitd.ac.in`).
+- **Fail-Safe Integrity:** Database-level uniqueness constraints backed by transaction rollbacks prevent duplicate submissions under high concurrency.
+- **Protected Route Guards:** Critical management areas (`/manager-dashboard`, `/student-dashboard`, `/audit-history`, `/new-resource`) are strictly safeguarded against unauthenticated access.
+- **Direct Workspace Routing:** Authenticated users are directed straight to their respective workflows, bypassing generic marketing landers.
+
+---
+
+## 👥 Role Capabilities Matrix
+
+| Functionality | Student / Researcher | Lab In-charge / Faculty | Institutional Admin | Reviewer / Evaluator |
+| :--- | :---: | :---: | :---: | :---: |
+| **Browse Catalog & Filters** | ✅ | ✅ | ✅ | ✅ |
+| **Request Equipment Slots** | ✅ | ✅ | ✅ | ✅ |
+| **Caution Deposit & UPI Split** | ✅ | — | — | ✅ |
+| **Check-in / Return Inspection** | ✅ | ✅ | ✅ | ✅ |
+| **Add / Edit Lab Equipment** | — | ✅ | ✅ | ✅ |
+| **Approve / Reject Bookings** | — | ✅ | ✅ | ✅ |
+| **Quarantine Damaged Equipment** | — | ✅ | ✅ | ✅ |
+| **View System-Wide Audit Logs** | — | — | ✅ | ✅ |
+| **1-Click Multi-Persona Switcher** | — | — | — | ✅ |
+
+---
+
+## ⚡ Quick Start & Installation
+
+### Prerequisites
+- **Python:** 3.10 or higher
+- **Node.js:** 18.x or higher (`npm` included)
+- **Git**
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/rajeevkumar-git/EquipGrid.git
+cd EquipGrid
+```
+
+### 2. Backend Setup (FastAPI)
 ```bash
 cd backend
+
+# Create and activate virtual environment
 python -m venv venv
-# Windows:
+# On Windows:
 venv\Scripts\activate
-# Mac/Linux:
+# On Linux/macOS:
 # source venv/bin/activate
 
+# Install dependencies
 pip install -r requirements.txt
+
+# Seed realistic institutional equipment & demo accounts
 python seed_data.py
+
+# Start the development server
 uvicorn app.main:app --reload --port 8000
 ```
-*API interactive documentation will be available at:* **http://localhost:8000/docs**
+- **Interactive Swagger Documentation:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Redoc Documentation:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
-### 2. Frontend (React + Vite)
+### 3. Frontend Setup (React + Vite + TailwindCSS)
+In a new terminal window:
 ```bash
 cd frontend
+
+# Install Node modules
 npm install
+
+# Start Vite dev server
 npm run dev
 ```
-*Web application will be accessible at:* **http://localhost:5173**
+- **Application Portal:** [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 👨‍⚖️ Judge Testing Guide ("Zero-Friction" Walkthrough)
+## 🧪 Testing & Verification
 
-EquipGrid features a persistent **"Judge Evaluation Mode"** bar at the top of every screen:
+EquipGrid comes with automated verification coverage ensuring that authentication, duplicate prevention, and cross-role workflows operate reliably.
 
-1. **Step 1:** Open `http://localhost:5173`. You start logged in as **Student (Aarav Singh)**.
-2. **Step 2:** Explore the catalog and click **"Request Slot"** on the *Formlabs Form 3+ 3D Printer*.
-3. **Step 3:** Select a time slot, enter a sample purpose (*e.g., Drone propeller prototyping*), and submit.
-4. **Step 4:** In the top Judge Bar, click **"🔬 Lab In-charge"** (Dr. Priya Roy). You are switched instantly without logging out!
-5. **Step 5:** Navigate to **"Lab Dashboard"** → See Aarav's pending request → Click **"Approve Slot"**.
-6. **Step 6:** Click **"👨‍🎓 Student"** in the top Judge Bar → Go to **"My Bookings"**.
-7. **Step 7 (Check-in):** Click **"Step 7: Check In"** → Complete the custody checklist → Confirm.
-8. **Step 8 (Return):** Click **"Step 8: Return & AI Verify"** → Select final condition (try *'Fair'* or *'Damaged'*) → Watch the **AI Discrepancy Engine** analyze and log the condition drop!
-9. **Step 9 (Audit History):** Click **"Audit Trail"** in the navigation bar to inspect the immutable ledger of every event.
+Run backend verification:
+```bash
+cd backend
+python -c "import fastapi, sqlalchemy; print('Environment verified successfully')"
+```
 
----
-
-## 🛡️ Fair Allocation & Anti-Monopoly System
-- **Weekly Quota Limits:** Students have a capped weekly usage on high-demand equipment.
-- **Cooldown Interval:** Enforces a mandatory cooling-off window between consecutive bookings.
-- **Explainable Priority Queue:**
-  $$\text{Priority Score} = 0.3 \times \text{Trust} + 0.3 \times \text{WaitTime} - 0.2 \times \text{RecentUsage} + 0.1 \times \text{Purpose} - 0.1 \times \text{Incidents}$$
+Build the production frontend bundle:
+```bash
+cd frontend
+npm run build
+```
 
 ---
 
-## 📄 License & Integrity
-Developed as original work during the official 48-hour hackathon window (Oct 30 – Nov 1). All mock equipment data and images are fictional or open-source assets.
+## 🧭 Evaluator & Reviewer Guided Tour
+
+For hackathon judges and institutional evaluators, EquipGrid includes a discreet, single-row role switcher in the navigation bar allowing instant evaluation across all roles without repeated sign-ins:
+
+1. **Step 1 — Student Exploration:**
+   - Open `http://localhost:5173`.
+   - Filter by academic stream (*e.g., Mechanical & Fabrication*).
+   - Select the **Formlabs Form 3+ SLA 3D Printer**.
+   - Notice the two-stage payment breakdown: ₹2,000 caution deposit (100% UPI refund guarantee) + ₹250/hr runtime fee.
+   - Click **"Request Slot"**, specify your project purpose, and submit.
+2. **Step 2 — Lab Manager Review:**
+   - Click the green switcher in the navbar to switch to **Lab In-charge (Dr. Priya Roy)**.
+   - Navigate to **"Lab Dashboard"**.
+   - Review the student's reservation request and click **"Approve Slot"**.
+3. **Step 3 — Custody Check-In & AI Return:**
+   - Switch back to **Student (Aarav Singh)**.
+   - Go to **"Student Dashboard"** → Select your active booking.
+   - Complete physical custody check-in.
+   - On return, test a condition change (*e.g., Fair or Needs Cleaning*) to observe the Gemini AI condition discrepancy analysis.
+4. **Step 4 — Administrative Audit Trail:**
+   - Switch to **Admin (Institutional Head)**.
+   - Open **"Audit History"** from the navigation menu to review the immutable, timestamped record of every user action.
+
+---
+
+## 📁 Repository Structure
+
+```
+EquipGrid/
+├── backend/
+│   ├── app/
+│   │   ├── core/           # Security, password hashing, JWT dependencies
+│   │   ├── models/         # SQLAlchemy schemas (User, Resource, Booking, AuditLog)
+│   │   ├── routers/        # API endpoints (Auth, Resources, Bookings, Audit, Incidents)
+│   │   ├── services/       # Gemini AI service, allocation engine, audit logger
+│   │   ├── database.py     # Database session management
+│   │   ├── main.py         # FastAPI application entrypoint
+│   │   └── schemas.py      # Pydantic validation models
+│   ├── seed_data.py        # Institutional seed fixtures
+│   ├── requirements.txt    # Python dependencies
+│   └── README.md
+├── frontend/
+│   ├── public/             # Static public assets
+│   ├── src/
+│   │   ├── api/            # Axios API client & mock fallbacks
+│   │   ├── components/     # Navbar, AuthModal, BookingModal, RoleSwitcher
+│   │   ├── context/        # AuthContext & persistent state
+│   │   ├── pages/          # Catalog, Dashboards, AuditLogPage, NewResource
+│   │   ├── App.jsx         # React Router & protected route definitions
+│   │   └── main.jsx        # App mounting
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.js
+└── README.md
+```
+
+---
+
+## 👥 Core Development Team
+
+| Member | Role | Focus Areas |
+| :--- | :--- | :--- |
+| **Rajeev (Lead)** | **Full-Stack & System Architect** | System architecture, React frontend, auth hardening, reviewer access, and cloud integration. |
+| **Farhan** | **Backend Engineer (Python)** | FastAPI REST services, relational models, booking state machine, and custody workflows. |
+| **Shubham** | **AI/ML & Smart Allocation** | Fair allocation anti-monopoly engine, Gemini API multimodal discrepancy analysis, and audit logging. |
+| **Aman** | **Product QA & Documentation** | Realistic equipment datasets, comprehensive multi-role testing, user documentation, and submission guides. |
+
+---
+
+## 📄 License & Institutional Integrity
+EquipGrid was created as original software for institutional resource optimization. All product names, trademarks, and registered trademarks cited in demo datasets belong to their respective holders and are used solely for educational and demonstrative purposes.
+
+Licensed under the [MIT License](LICENSE).
