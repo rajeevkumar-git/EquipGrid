@@ -31,9 +31,17 @@ def list_resources(
     query = db.query(Resource).filter(Resource.is_active == True)
 
     if category and category != "all":
-        query = query.filter(Resource.category == category)
+        if category in ("equipment", "device", "lab"):
+            query = query.filter(Resource.category == category)
+        else:
+            query = query.filter(
+                (Resource.category == category) |
+                (Resource.stream.ilike(f"%{category}%"))
+            )
+
     if stream and stream != "all":
         query = query.filter(Resource.stream.ilike(f"%{stream}%"))
+
     if deposit:
         if deposit == "free":
             query = query.filter((Resource.requires_deposit == False) | (Resource.deposit_amount == 0))
@@ -41,12 +49,16 @@ def list_resources(
             query = query.filter(Resource.requires_deposit == True, Resource.deposit_amount <= 1000)
         elif deposit == "over_1000":
             query = query.filter(Resource.requires_deposit == True, Resource.deposit_amount > 1000)
+
     if status:
         query = query.filter(Resource.status == status)
+
     if institution and institution != "all":
         query = query.filter(Resource.institution == institution)
+
     if location:
         query = query.filter(Resource.location.ilike(f"%{location}%"))
+
     if search:
         query = query.filter(
             Resource.name.ilike(f"%{search}%") |

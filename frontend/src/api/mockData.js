@@ -847,6 +847,126 @@ export const MOCK_RESOURCES = [
         description: 'High-vacuum thin film safety training.'
       }
     ]
+  },
+  {
+    id: 'res-27',
+    name: 'Sony Alpha 7S III 4K Cinema Camera Kit',
+    institution: 'NSUT Media Innovation Hub',
+    category: 'device',
+    stream: 'Computer Science & AI (CSE)',
+    lab_manager: 'Dr. Alok Nath (+91 98111 66554)',
+    location: 'Media Center, Room 301, Admin Block',
+    status: 'available',
+    utilization_rate: 0.30,
+    hourly_rate: 150.0,
+    description: 'Full-frame mirrorless cinema camera system ideal for computer vision datasets, high-speed motion analysis, and research documentation. Kit includes: body, 24-70mm f/2.8 lens, and CFexpress cards.',
+    images: ['https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800'],
+    max_booking_hours: 8,
+    max_bookings_per_user_per_month: 3,
+    requires_deposit: true,
+    deposit_amount: 1000.0,
+    requires_supervision: false,
+    supervisor_contact: 'Dr. Alok Nath (alok.nath@nsut.ac.in)',
+    baseline_condition: 'excellent',
+    baseline_notes: 'Body and lenses clean, sensor pristine, batteries fully charged.',
+    condition_checklist: [
+      'Camera body unscratched',
+      'Both lens caps on',
+      'Sensor dust-free',
+      'Batteries returned to charging bay'
+    ],
+    eligibility_requirements: []
+  },
+  {
+    id: 'res-28',
+    name: 'NVIDIA RTX 4090 Dual GPU Workstation',
+    institution: 'DTU Supercomputing Cluster',
+    category: 'device',
+    stream: 'Computer Science & AI (CSE)',
+    lab_manager: 'Prof. S. K. Gupta (+91 98111 22334)',
+    location: 'AI Lab, Room 402, Block D',
+    status: 'available',
+    utilization_rate: 0.45,
+    hourly_rate: 0.0,
+    description: 'Dual NVIDIA RTX 4090 24GB GPUs (48GB VRAM total), AMD Threadripper 32-Core, 128GB RAM. Configured with PyTorch, CUDA 12.3, and Ollama local LLM execution.',
+    images: ['https://images.unsplash.com/photo-1591488320449-011701bb6704?w=800'],
+    max_booking_hours: 8,
+    max_bookings_per_user_per_month: 4,
+    requires_deposit: false,
+    deposit_amount: 0.0,
+    requires_supervision: false,
+    supervisor_contact: 'Prof. S. K. Gupta (skgupta@dtu.ac.in)',
+    baseline_condition: 'excellent',
+    baseline_notes: 'Thermals normal at 36C idle, drivers up to date.',
+    condition_checklist: [
+      'No background daemon jobs left running',
+      'User checkpoints moved to personal storage',
+      'Environment active flags cleared'
+    ],
+    eligibility_requirements: []
+  },
+  {
+    id: 'res-29',
+    name: 'Cleanroom B4 — Photolithography Bench',
+    institution: 'IIT Delhi Nano Centre',
+    category: 'lab',
+    stream: 'Nanotechnology & Physics',
+    lab_manager: 'Dr. Neha Verma (+91 98188 66778)',
+    location: 'Nano Fabrication Centre, Sub-level 1, Block E',
+    status: 'available',
+    utilization_rate: 0.35,
+    hourly_rate: 350.0,
+    deposit_amount: 2000.0,
+    requires_deposit: true,
+    requires_supervision: true,
+    supervisor_contact: 'Dr. Neha Verma (neha.verma@iitd.ac.in)',
+    description: 'ISO Class 5 cleanroom workstation for photolithography, thin-film deposition prep, and wafer processing. Gowning required.',
+    images: ['https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=800'],
+    max_booking_hours: 4,
+    max_bookings_per_user_per_month: 3,
+    baseline_condition: 'excellent',
+    baseline_notes: 'Spin coater calibrated, UV lamp certified, chemicals within validity.',
+    condition_checklist: [
+      'Cleanroom gowning returned to rack',
+      'Spin coater chuck cleaned with acetone/IPA',
+      'Chemical containers sealed and wiped'
+    ],
+    eligibility_requirements: [
+      {
+        type: 'certification',
+        name: 'Cleanroom Protocol Certification',
+        mandatory: true,
+        description: 'Mandatory cleanroom protocol certification.'
+      }
+    ]
+  },
+  {
+    id: 'res-30',
+    name: 'Eppendorf BioFlo 120 Fermentation Bioreactor System',
+    institution: 'IIT Delhi Biosafety Level-2 Lab',
+    category: 'equipment',
+    stream: 'Biotechnology & Life Sciences',
+    lab_manager: 'Dr. Rajesh Sharma (+91 99333 44556)',
+    location: 'Biotechnology Dept, Room 106',
+    status: 'available',
+    utilization_rate: 0.25,
+    hourly_rate: 220.0,
+    deposit_amount: 1000.0,
+    requires_deposit: true,
+    requires_supervision: false,
+    supervisor_contact: 'Dr. Rajesh Sharma (rajesh.sharma@iitd.ac.in)',
+    description: 'Benchtop autoclavable glass bioreactor system (3L vessel) with automated pH, dissolved oxygen (DO), temperature, and agitation cascade control for microbial fermentation and cell culture.',
+    images: ['https://images.unsplash.com/photo-1579154204601-01588f351e67?w=800'],
+    max_booking_hours: 6,
+    max_bookings_per_user_per_month: 3,
+    baseline_condition: 'excellent',
+    baseline_notes: 'pH and DO sensors calibrated, motor drive head operational.',
+    condition_checklist: [
+      'Vessel autoclaved and sanitized after harvest',
+      'Sensors stored in 3M KCl electrolyte',
+      'Gas sparge filters checked'
+    ],
+    eligibility_requirements: []
   }
 ];
 

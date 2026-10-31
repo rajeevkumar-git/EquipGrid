@@ -810,6 +810,94 @@ def seed():
                 "Roughing pump valve sequence verified"
             ],
             "eligibility_requirements": []
+        },
+        # 27. Media / CS
+        {
+            "name": "Sony Alpha 7S III 4K Cinema Camera Kit",
+            "institution": "NSUT Media Innovation Hub",
+            "stream": "Computer Science & AI (CSE)",
+            "category": "device",
+            "hourly_rate": 150.0,
+            "deposit_amount": 1000.0,
+            "requires_deposit": True,
+            "requires_supervision": False,
+            "lab_manager": "Dr. Alok Nath (+91 98111 66554)",
+            "supervisor_contact": "Dr. Alok Nath (alok.nath@nsut.ac.in)",
+            "utilization_rate": 0.30,
+            "location": "Media Center, Room 301, Admin Block",
+            "description": "Full-frame mirrorless cinema camera system ideal for computer vision datasets, high-speed motion analysis, and research documentation.",
+            "images": ["https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800"],
+            "max_booking_hours": 8,
+            "max_bookings_per_user_per_month": 3,
+            "baseline_condition": "excellent",
+            "condition_checklist": ["Camera body unscratched", "Both lens caps on", "Sensor dust-free", "Batteries returned to charging bay"],
+            "eligibility_requirements": []
+        },
+        # 28. CS AI
+        {
+            "name": "NVIDIA RTX 4090 Dual GPU Workstation",
+            "institution": "DTU Supercomputing Cluster",
+            "stream": "Computer Science & AI (CSE)",
+            "category": "device",
+            "hourly_rate": 0.0,
+            "deposit_amount": 0.0,
+            "requires_deposit": False,
+            "requires_supervision": False,
+            "lab_manager": "Prof. S. K. Gupta (+91 98111 22334)",
+            "supervisor_contact": "Prof. S. K. Gupta (skgupta@dtu.ac.in)",
+            "utilization_rate": 0.45,
+            "location": "AI Lab, Room 402, Block D",
+            "description": "Dual NVIDIA RTX 4090 24GB GPUs (48GB VRAM total), AMD Threadripper 32-Core, 128GB RAM. Configured with PyTorch, CUDA 12.3, and Ollama local LLM execution.",
+            "images": ["https://images.unsplash.com/photo-1591488320449-011701bb6704?w=800"],
+            "max_booking_hours": 8,
+            "max_bookings_per_user_per_month": 4,
+            "baseline_condition": "excellent",
+            "condition_checklist": ["No background daemon jobs left running", "User checkpoints moved to personal storage", "Environment active flags cleared"],
+            "eligibility_requirements": []
+        },
+        # 29. Cleanroom
+        {
+            "name": "Cleanroom B4 — Photolithography Bench",
+            "institution": "IIT Delhi Nano Centre",
+            "stream": "Nanotechnology & Physics",
+            "category": "lab",
+            "hourly_rate": 350.0,
+            "deposit_amount": 2000.0,
+            "requires_deposit": True,
+            "requires_supervision": True,
+            "lab_manager": "Dr. Neha Verma (+91 98188 66778)",
+            "supervisor_contact": "Dr. Neha Verma (neha.verma@iitd.ac.in)",
+            "utilization_rate": 0.35,
+            "location": "Nano Fabrication Centre, Sub-level 1, Block E",
+            "description": "ISO Class 5 cleanroom workstation for photolithography, thin-film deposition prep, and wafer processing. Gowning required.",
+            "images": ["https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=800"],
+            "max_booking_hours": 4,
+            "max_bookings_per_user_per_month": 3,
+            "baseline_condition": "excellent",
+            "condition_checklist": ["Cleanroom gowning returned to rack", "Spin coater chuck cleaned with acetone/IPA", "Chemical containers sealed and wiped"],
+            "eligibility_requirements": [{"type": "certification", "name": "Cleanroom Protocol Certification", "mandatory": True, "description": "Mandatory cleanroom protocol certification."}]
+        },
+        # 30. Bioreactor
+        {
+            "name": "Eppendorf BioFlo 120 Fermentation Bioreactor System",
+            "institution": "IIT Delhi Biosafety Level-2 Lab",
+            "stream": "Biotechnology & Life Sciences",
+            "category": "equipment",
+            "hourly_rate": 220.0,
+            "deposit_amount": 1000.0,
+            "requires_deposit": True,
+            "requires_supervision": False,
+            "lab_manager": "Dr. Rajesh Sharma (+91 99333 44556)",
+            "supervisor_contact": "Dr. Rajesh Sharma (rajesh.sharma@iitd.ac.in)",
+            "utilization_rate": 0.25,
+            "location": "Biotechnology Dept, Room 106",
+            "description": "Benchtop autoclavable glass bioreactor system (3L vessel) with automated pH, dissolved oxygen (DO), temperature, and agitation cascade control for microbial fermentation and cell culture.",
+            "images": ["https://images.unsplash.com/photo-1579154204601-01588f351e67?w=800"],
+            "max_booking_hours": 6,
+            "max_bookings_per_user_per_month": 3,
+            "baseline_condition": "excellent",
+            "condition_checklist": ["Vessel autoclaved and sanitized after harvest", "Sensors stored in 3M KCl electrolyte", "Gas sparge filters checked"],
+            "eligibility_requirements": []
         }
     ]
 
@@ -838,7 +926,7 @@ def seed():
         _add_slots(db, resource.id)
 
     db.close()
-    print("\n[SUCCESS] Seed data complete! 26 realistic academic resources populated.")
+    print("\n[SUCCESS] Seed data complete! 30 realistic academic resources populated.")
     print(f"\nDemo Login Credentials (password: {DEMO_PASSWORD}):")
     print("  Student:     student@equipgrid.demo")
     print("  Lab Manager: labmanager@equipgrid.demo")
