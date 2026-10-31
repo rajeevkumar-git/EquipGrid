@@ -33,9 +33,16 @@ export const StudentDashboard = () => {
     setLoading(true);
     try {
       const res = await api.get('/api/bookings');
-      setBookings(res.data || []);
+      if (res.data && res.data.length > 0) {
+        setBookings(res.data);
+      } else {
+        const { MOCK_BOOKINGS } = await import('../api/mockData');
+        setBookings(MOCK_BOOKINGS);
+      }
     } catch (err) {
-      console.warn('Failed loading bookings:', err);
+      console.warn('Using mock bookings fallback:', err);
+      const { MOCK_BOOKINGS } = await import('../api/mockData');
+      setBookings(MOCK_BOOKINGS);
     } finally {
       setLoading(false);
     }

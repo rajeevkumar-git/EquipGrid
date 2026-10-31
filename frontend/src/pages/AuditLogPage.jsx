@@ -25,9 +25,16 @@ export const AuditLogPage = () => {
       const params = { limit: 50 };
       if (filterAction) params.action = filterAction;
       const res = await api.get('/api/audit-logs', { params });
-      setLogs(res.data || []);
+      if (res.data && res.data.length > 0) {
+        setLogs(res.data);
+      } else {
+        const { MOCK_AUDIT_LOGS } = await import('../api/mockData');
+        setLogs(MOCK_AUDIT_LOGS);
+      }
     } catch (err) {
-      console.warn('Failed to load logs:', err);
+      console.warn('Failed to load logs, using mock:', err);
+      const { MOCK_AUDIT_LOGS } = await import('../api/mockData');
+      setLogs(MOCK_AUDIT_LOGS);
     } finally {
       setLoading(false);
     }

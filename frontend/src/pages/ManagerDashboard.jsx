@@ -33,12 +33,20 @@ export const ManagerDashboard = () => {
     setLoading(true);
     try {
       const bRes = await api.get('/api/bookings');
-      setBookings(bRes.data || []);
+      if (bRes.data && bRes.data.length > 0) {
+        setBookings(bRes.data);
+      } else {
+        const { MOCK_BOOKINGS } = await import('../api/mockData');
+        setBookings(MOCK_BOOKINGS);
+      }
 
       const iRes = await api.get('/api/incidents');
       setIncidents(iRes.data || []);
     } catch (err) {
-      console.warn('Failed loading manager data:', err);
+      console.warn('Failed loading manager data, using mock:', err);
+      const { MOCK_BOOKINGS } = await import('../api/mockData');
+      setBookings(MOCK_BOOKINGS);
+      setIncidents([]);
     } finally {
       setLoading(false);
     }

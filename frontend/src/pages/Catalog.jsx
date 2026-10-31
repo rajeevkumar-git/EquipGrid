@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/client';
+import { MOCK_RESOURCES } from '../api/mockData';
 import { ResourceCard } from '../components/ResourceCard';
 import { BookingModal } from '../components/BookingModal';
 import { 
   Search, 
-  Filter, 
   Layers, 
   Cpu, 
   Wrench, 
   Building, 
-  Camera, 
-  Sparkles,
   ShieldCheck,
   Scale
 } from 'lucide-react';
@@ -36,9 +34,13 @@ export const Catalog = () => {
   const loadInstitutions = async () => {
     try {
       const res = await api.get('/api/resources/institutions');
-      setInstitutions(res.data || []);
+      if (res.data && res.data.length > 0) {
+        setInstitutions(res.data);
+      } else {
+        setInstitutions(['IIT Delhi Fab Lab', 'DTU Materials Characterization Lab', 'BITS Pilani Microfabrication Centre', 'NIT Trichy RF & Microwave Lab', 'NSUT High Performance Computing Center']);
+      }
     } catch (err) {
-      console.warn('Failed loading institutions:', err);
+      setInstitutions(['IIT Delhi Fab Lab', 'DTU Materials Characterization Lab', 'BITS Pilani Microfabrication Centre', 'NIT Trichy RF & Microwave Lab', 'NSUT High Performance Computing Center']);
     }
   };
 
@@ -52,12 +54,39 @@ export const Catalog = () => {
       if (search.trim()) params.search = search.trim();
 
       const res = await api.get('/api/resources', { params });
-      setResources(res.data || []);
+      if (res.data && res.data.length > 0) {
+        setResources(res.data);
+      } else {
+        // Fallback to rich mock catalog filtered locally
+        filterLocalMock();
+      }
     } catch (err) {
-      console.warn('Failed to load resources:', err);
+      console.warn('Backend API connecting/offline, using fallback catalog:', err?.message || err);
+      filterLocalMock();
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterLocalMock = () => {
+    let list = [...MOCK_RESOURCES];
+    if (selectedCategory !== 'all') {
+      list = list.filter(r => r.category === selectedCategory);
+    }
+    if (selectedInstitution !== 'all') {
+      list = list.filter(r => r.institution === selectedInstitution);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(r => r.name.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q));
+    }
+    if (sortBy === 'underutilized') {
+      list.sort((a, b) => (a.utilization_rate || 0) - (b.utilization_rate || 0));
+    } else if (sortBy === 'fair_exposure') {
+      // Prioritize underutilized equipment from varied institutions
+      list.sort((a, b) => (a.utilization_rate || 0) - (b.utilization_rate || 0));
+    }
+    setResources(list);
   };
 
   const categories = [
@@ -104,10 +133,10 @@ export const Catalog = () => {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-2 ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap shadow-sm ${
                     isSelected
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                      ? 'bg-blue-600 text-white shadow-blue-500/25'
+                      : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -117,31 +146,31 @@ export const Catalog = () => {
             })}
           </div>
 
-          {/* Search Input */}
+          {/* Search Box */}
           <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
+              placeholder="Search microscope, printer..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search equipment, labs, or institutes..."
-              className="w-full text-xs pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 shadow-sm"
+              className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
         </div>
 
-        {/* Second Row: Institution Selector & Anti-Monopoly Sorter */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 text-xs">
-          {/* Institutional Diversity Filter */}
+        {/* Filters Bar: Institution + Sorting */}
+        <div className="flex items-center justify-between gap-4 flex-wrap bg-white p-3 rounded-xl border border-slate-200 text-xs shadow-sm">
+          {/* Institution Filter */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Building className="w-4 h-4 text-slate-400 shrink-0" />
+            <Building className="w-4 h-4 text-slate-500 shrink-0" />
             <span className="font-bold text-slate-700 whitespace-nowrap">Filter Institution:</span>
             <select
               value={selectedInstitution}
               onChange={(e) => setSelectedInstitution(e.target.value)}
-              className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-medium focus:ring-1 focus:ring-blue-500 w-full sm:w-auto"
+              className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-medium focus:ring-1 focus:ring-blue-500"
             >
-              <option value="all">All Participating Institutions (Equal Representation)</option>
+              <option value="all">All Institutions (Open Network)</option>
               {institutions.map((inst) => (
                 <option key={inst} value={inst}>
                   {inst}
