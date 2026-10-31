@@ -5,7 +5,12 @@ import os
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./equipgrid.db")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_DB_PATH = os.path.join(BASE_DIR, "equipgrid.db").replace("\\", "/")
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL or DATABASE_URL == "sqlite:///./equipgrid.db":
+    DATABASE_URL = f"sqlite:///{DEFAULT_DB_PATH}"
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 

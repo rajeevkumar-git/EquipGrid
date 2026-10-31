@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Text, JSON, BigInteger
+from sqlalchemy import Column, Integer, String, DateTime, Text, JSON
 from app.database import Base
 
 
@@ -10,7 +10,7 @@ class AuditLog(Base):
     """
     __tablename__ = "audit_log"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
     # What entity was affected
     entity_type = Column(String, nullable=False, index=True)
