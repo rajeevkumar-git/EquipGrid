@@ -125,15 +125,14 @@ export const Navbar = () => {
 
           {/* Right Controls: Compact Reviewer Switcher, Notifications & User Card */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Minimal Judge / Evaluator Mode Controls (No giant banners) */}
+            {/* Minimal Mode Switcher (Clean green indicator + role pills) */}
             {isJudgeMode ? (
-              <div className="flex items-center gap-1.5 bg-slate-900 text-white px-2.5 py-1 rounded-xl text-xs shadow-xs border border-slate-700 animate-in fade-in">
-                <span className="flex h-2 w-2 relative" title="Evaluator Sandbox Active">
+              <div className="flex items-center gap-1.5 bg-slate-900 text-white px-2 py-1 rounded-xl text-xs shadow-xs border border-slate-700 animate-in fade-in">
+                <span className="flex h-2 w-2 relative ml-0.5" title="Active">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span className="text-[10px] font-bold text-emerald-400 hidden xl:inline">Evaluator</span>
-                <div className="flex items-center gap-1 border-l border-slate-700 pl-1.5 ml-0.5">
+                <div className="flex items-center gap-1 ml-0.5">
                   {demoPersonas.map((persona) => {
                     const isActive = user?.email === persona.email;
                     return (
@@ -154,7 +153,7 @@ export const Navbar = () => {
                 </div>
                 <button
                   onClick={exitJudgeMode}
-                  title="Lock & Exit Evaluator Mode"
+                  title="Lock & Exit"
                   className="ml-1 text-slate-400 hover:text-rose-400 p-0.5 transition"
                 >
                   <X className="w-3.5 h-3.5" />
