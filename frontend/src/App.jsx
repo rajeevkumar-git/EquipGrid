@@ -84,18 +84,10 @@ function AppContent() {
       />
 
       {/* Simple Institutional Footer */}
-      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500 space-y-1.5">
+      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500 space-y-1">
         <p className="font-semibold text-slate-700">EquipGrid — Institutional Equipment & Resource Sharing Network</p>
         <p className="text-[11px] text-slate-400">
-          Built for the 48-Hour Hackathon • Team: Rajeev, Farhan, Shubham, Aman •{' '}
-          <a
-            href="https://forms.gle/QTD1ZRuPX37Yef37A"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
-          >
-            Official Submission Portal
-          </a>
+          Inter-Institutional Resource & Space Sharing Platform • Built for the 48-Hour Hackathon
         </p>
       </footer>
     </div>
