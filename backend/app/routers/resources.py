@@ -15,26 +15,51 @@ router = APIRouter(prefix="/api/resources", tags=["Resources"])
 def list_resources(
     category: Optional[str] = Query(None),
     location: Optional[str] = Query(None),
+    institution: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query("fair_exposure"),  # fair_exposure | underutilized | newest
     db: Session = Depends(get_db),
 ):
-    """Public endpoint — list all active resources with optional filters."""
+    """
+    Public catalog endpoint with Anti-Monopoly Fair Exposure Engine.
+    Prevents prominent institutions from monopolizing search traffic by promoting
+    underutilized assets from diverse colleges and makerspaces.
+    """
     query = db.query(Resource).filter(Resource.is_active == True)
 
     if category:
         query = query.filter(Resource.category == category)
     if status:
         query = query.filter(Resource.status == status)
+    if institution:
+        query = query.filter(Resource.institution == institution)
     if location:
         query = query.filter(Resource.location.ilike(f"%{location}%"))
     if search:
         query = query.filter(
             Resource.name.ilike(f"%{search}%") |
-            Resource.description.ilike(f"%{search}%")
+            Resource.description.ilike(f"%{search}%") |
+            Resource.institution.ilike(f"%{search}%")
         )
 
-    return query.order_by(Resource.created_at.desc()).all()
+    # Anti-monopoly sorting
+    if sort_by == "underutilized":
+        # Lowest utilization rate first (unlocking truly idle equipment)
+        return query.order_by(Resource.utilization_rate.asc(), Resource.created_at.desc()).all()
+    elif sort_by == "fair_exposure":
+        # Rotational fair exposure: prioritize underused resources + active status
+        return query.order_by(Resource.utilization_rate.asc(), Resource.created_at.asc()).all()
+    else:
+        # Default newest
+        return query.order_by(Resource.created_at.desc()).all()
+
+
+@router.get("/institutions")
+def list_institutions(db: Session = Depends(get_db)):
+    """Return all unique participating institutions for fair-share filtering."""
+    institutions = db.query(Resource.institution).distinct().all()
+    return [i[0] for i in institutions if i[0]]
 
 
 @router.post("", response_model=ResourceOut, status_code=201)
@@ -49,6 +74,8 @@ def create_resource(
         name=payload.name,
         description=payload.description,
         category=payload.category,
+        institution=payload.institution or current_user.institutional_affiliation or "Campus Lab",
+        utilization_rate=payload.utilization_rate or 0.15,
         location=payload.location,
         images=payload.images,
         max_booking_hours=payload.max_booking_hours,
@@ -73,7 +100,12 @@ def create_resource(
         db, entity_type="resource", entity_id=resource.id,
         action="RESOURCE_LISTED",
         actor_id=current_user.id, actor_name=current_user.full_name, actor_role=current_user.role,
-        details={"name": resource.name, "category": resource.category, "location": resource.location},
+        details={
+            "name": resource.name,
+            "category": resource.category,
+            "institution": resource.institution,
+            "location": resource.location,
+        },
     )
 
     return resource
@@ -108,7 +140,7 @@ def check_eligibility(
         if req.get("type") in ("training", "certification"):
             met = req.get("name") in user_creds
         elif req.get("type") == "approval":
-            met = False    # Always requires manual approval
+            met = False
         else:
             met = True
 

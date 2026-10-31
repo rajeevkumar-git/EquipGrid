@@ -122,6 +122,8 @@ def seed():
     resources_data = [
         {
             "name": "Formlabs Form 3+ SLA 3D Printer",
+            "institution": "IIT Delhi Fab Lab",
+            "utilization_rate": 0.65,
             "description": (
                 "Industrial-grade stereolithography 3D printer for high-resolution resin prototypes. "
                 "Capable of printing at 25–300 micron layer height. Ideal for mechanical parts, "
@@ -171,6 +173,8 @@ def seed():
         },
         {
             "name": "Keysight InfiniiVision 4-Channel Oscilloscope (1 GHz)",
+            "institution": "Jamia Millia Research Centre",
+            "utilization_rate": 0.15,
             "description": (
                 "High-performance digital oscilloscope with 1 GHz bandwidth, 4 GSa/s sample rate, "
                 "and 4 channels. Equipped with serial decode, power analysis, and waveform generator. "
@@ -210,6 +214,8 @@ def seed():
         },
         {
             "name": "Universal Laser Systems VLS 3.5 CO2 Laser Cutter",
+            "institution": "Delhi Community Makerspace",
+            "utilization_rate": 0.22,
             "description": (
                 "Professional laser cutter/engraver with a 24×18 inch cutting area. "
                 "Supports wood, acrylic, leather, fabric, paper, and anodized metals. "
@@ -265,6 +271,8 @@ def seed():
         },
         {
             "name": "Sony Alpha 7S III 4K Cinema Camera Kit",
+            "institution": "NSUT Media Innovation Hub",
+            "utilization_rate": 0.30,
             "description": (
                 "Full-frame mirrorless cinema camera system ideal for research documentation, "
                 "high-speed imaging, and low-light recording. Kit includes: body, 24-70mm f/2.8 lens, "
@@ -314,6 +322,8 @@ def seed():
         },
         {
             "name": "NVIDIA RTX 4090 Deep Learning Workstation",
+            "institution": "DTU Supercomputing Cluster",
+            "utilization_rate": 0.85,
             "description": (
                 "High-performance AI/ML compute workstation with dual NVIDIA RTX 4090 GPUs (96GB VRAM), "
                 "AMD Threadripper 64-core CPU, 256GB ECC RAM, and 20TB NVMe storage. "
@@ -361,6 +371,8 @@ def seed():
         },
         {
             "name": "Cleanroom B4 — Photolithography Bench",
+            "institution": "IIT Delhi Nano Centre",
+            "utilization_rate": 0.40,
             "description": (
                 "ISO Class 5 cleanroom workstation for photolithography, thin-film deposition preparation, "
                 "and semiconductor fabrication research. Includes spin coater, UV exposure unit, "

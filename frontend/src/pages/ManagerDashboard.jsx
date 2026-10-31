@@ -11,7 +11,9 @@ import {
   User, 
   History, 
   Sparkles,
-  Inbox
+  Inbox,
+  Wrench,
+  CheckCircle2
 } from 'lucide-react';
 
 export const ManagerDashboard = () => {
@@ -21,6 +23,7 @@ export const ManagerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeAuditBookingId, setActiveAuditBookingId] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const [resolvingIncidentId, setResolvingIncidentId] = useState(null);
 
   useEffect(() => {
     loadManagerData();
@@ -68,8 +71,25 @@ export const ManagerDashboard = () => {
     }
   };
 
+  const handleResolveIncident = async (incidentId) => {
+    const notes = prompt('Enter resolution summary (e.g. Inspected by technician, lens recalibrated, security deposit deducted ₹500):');
+    if (!notes) return;
+
+    setActionLoading(incidentId);
+    try {
+      await api.patch(`/api/incidents/${incidentId}/resolve`, { resolution_notes: notes });
+      alert('Incident resolved! Equipment released from quarantine to available status.');
+      loadManagerData();
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Resolution failed');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const pendingRequests = bookings.filter((b) => b.status === 'pending_approval');
   const activeCustody = bookings.filter((b) => b.status === 'checked_in');
+  const openIncidents = incidents.filter((i) => i.status === 'open' || i.status === 'under_review');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -87,8 +107,82 @@ export const ManagerDashboard = () => {
           <span className="px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
             {activeCustody.length} Active in Lab
           </span>
+          <span className={`px-3 py-1 rounded-xl text-xs font-semibold border ${
+            openIncidents.length > 0
+              ? 'bg-rose-50 border-rose-300 text-rose-800 animate-pulse'
+              : 'bg-slate-50 border-slate-200 text-slate-600'
+          }`}>
+            {openIncidents.length} Safety Incidents
+          </span>
         </div>
       </div>
+
+      {/* Step 9: Incidents & Disputes Queue */}
+      {openIncidents.length > 0 && (
+        <div className="bg-rose-50/60 rounded-2xl border border-rose-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-rose-200 bg-rose-100/60 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
+              <h2 className="font-bold text-xs text-rose-950 uppercase tracking-wide">
+                Step 9: Active Damage & Incident Queue ({openIncidents.length})
+              </h2>
+            </div>
+            <span className="text-[10px] text-rose-700 font-semibold bg-rose-200/70 px-2 py-0.5 rounded">
+              Quarantine Enforced
+            </span>
+          </div>
+
+          <div className="divide-y divide-rose-200">
+            {openIncidents.map((inc) => (
+              <div key={inc.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-2 flex-1 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm text-slate-900 capitalize">
+                      {inc.incident_type.replace('_', ' ')} Incident
+                    </span>
+                    <span className="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                      {inc.severity || 'Moderate'}
+                    </span>
+                    <span className="text-slate-400 text-[11px]">
+                      Reported: {new Date(inc.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+
+                  <p className="text-slate-700 bg-white p-2.5 rounded-lg border border-rose-100 italic">
+                    "{inc.description}"
+                  </p>
+
+                  {inc.ai_summary && (
+                    <div className="bg-white/80 p-2.5 rounded-lg border border-rose-100 space-y-1">
+                      <span className="font-bold text-blue-900 flex items-center gap-1 text-[11px]">
+                        <Sparkles className="w-3.5 h-3.5 text-blue-600" /> AI Discrepancy & Severity Analysis:
+                      </span>
+                      <p className="text-slate-600 text-[11px]">{inc.ai_summary}</p>
+                    </div>
+                  )}
+
+                  {inc.estimated_cost && (
+                    <span className="font-bold text-slate-800 block text-[11px]">
+                      Estimated Penalty / Repair: ₹{inc.estimated_cost}
+                    </span>
+                  )}
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2">
+                  <button
+                    onClick={() => handleResolveIncident(inc.id)}
+                    disabled={actionLoading === inc.id}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm text-xs flex items-center gap-1.5 transition disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Resolve & Clear Quarantine</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Pending Approvals Queue */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

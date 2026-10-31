@@ -7,7 +7,9 @@ import {
   Award, 
   CheckCircle2, 
   AlertTriangle,
-  ArrowRight
+  ArrowRight,
+  Building,
+  Sparkles
 } from 'lucide-react';
 
 export const ResourceCard = ({ resource, onBookClick }) => {
@@ -15,6 +17,8 @@ export const ResourceCard = ({ resource, onBookClick }) => {
   const hasTrainingReq = (resource.eligibility_requirements || []).some(
     (r) => r.type === 'training' || r.type === 'certification'
   );
+
+  const utilPercent = Math.round((resource.utilization_rate || 0.25) * 100);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group">
@@ -58,18 +62,44 @@ export const ResourceCard = ({ resource, onBookClick }) => {
 
       {/* Content */}
       <div className="p-4 flex-1 flex flex-col">
+        {/* Host Institution Badge (Fair Competition) */}
+        <div className="flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50/80 px-2 py-0.5 rounded-md mb-1.5 w-fit">
+          <Building className="w-3 h-3 text-blue-600 shrink-0" />
+          <span className="truncate">{resource.institution || 'Campus Lab'}</span>
+        </div>
+
         <h3 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition line-clamp-1">
           {resource.name}
         </h3>
 
-        <div className="flex items-center gap-1 text-slate-500 text-xs mt-1 mb-2">
+        <div className="flex items-center gap-1 text-slate-500 text-xs mt-0.5 mb-2">
           <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <span className="truncate">{resource.location || 'Campus Lab'}</span>
+          <span className="truncate">{resource.location || 'Facility'}</span>
         </div>
 
         <p className="text-slate-600 text-xs line-clamp-2 mb-3 flex-1">
           {resource.description || 'Institutional research equipment available for booking.'}
         </p>
+
+        {/* Anti-Monopoly Utilization Meter */}
+        <div className="mb-3">
+          {utilPercent < 35 ? (
+            <div className="inline-flex items-center gap-1 text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Underutilized ({utilPercent}%) • Instant Access Boost
+            </div>
+          ) : utilPercent > 70 ? (
+            <div className="inline-flex items-center gap-1 text-[10px] font-semibold bg-rose-50 text-rose-800 border border-rose-200 px-2 py-0.5 rounded">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+              High Demand ({utilPercent}%) • Quota Capped
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1 text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              Moderate Demand ({utilPercent}%)
+            </div>
+          )}
+        </div>
 
         {/* Requirements / Tags */}
         <div className="flex flex-wrap gap-1.5 mb-3">

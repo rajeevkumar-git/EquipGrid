@@ -53,6 +53,8 @@ class ResourceCreate(BaseModel):
     name: str
     description: Optional[str] = None
     category: str = "equipment"
+    institution: Optional[str] = "IIT Delhi"
+    utilization_rate: Optional[float] = 0.20
     location: Optional[str] = None
     images: list = []
     max_booking_hours: int = 8
@@ -76,6 +78,8 @@ class ResourceOut(BaseModel):
     name: str
     description: Optional[str]
     category: str
+    institution: Optional[str]
+    utilization_rate: Optional[float]
     location: Optional[str]
     images: list
     status: str
@@ -192,7 +196,7 @@ class ConditionRecordOut(BaseModel):
 class IncidentCreate(BaseModel):
     booking_id: str
     resource_id: str
-    incident_type: str      # damage | overdue | policy_violation | no_show | dispute | other
+    incident_type: str      # damage | delay | policy_violation | no_show | dispute | other
     severity: Optional[str] = None
     description: str
     evidence_photos: list = []

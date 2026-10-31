@@ -18,6 +18,10 @@ class Resource(Base):
     description = Column(Text, nullable=True)
     category = Column(String, nullable=False, default="equipment")
 
+    # Anti-monopoly & fair institutional exposure
+    institution = Column(String, default="IIT Delhi", index=True)
+    utilization_rate = Column(Float, default=0.20)  # 0.0 to 1.0 (e.g. 0.20 = 20% utilized)
+
     location = Column(String, nullable=True)
     images = Column(JSON, default=list)
 

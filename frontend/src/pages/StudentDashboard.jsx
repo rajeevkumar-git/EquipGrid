@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { ConditionChecklistModal } from '../components/ConditionChecklistModal';
+import { IncidentModal } from '../components/IncidentModal';
 import { AuditTimeline } from '../components/AuditTimeline';
 import { 
   Calendar, 
@@ -9,6 +10,7 @@ import {
   CheckCircle2, 
   Hourglass, 
   AlertCircle, 
+  AlertTriangle,
   History, 
   ArrowRight,
   Sparkles,
@@ -20,6 +22,7 @@ export const StudentDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeChecklist, setActiveChecklist] = useState(null); // { booking, mode: 'checkin' | 'return' }
+  const [activeIncidentBooking, setActiveIncidentBooking] = useState(null);
   const [activeAuditBookingId, setActiveAuditBookingId] = useState(null);
 
   useEffect(() => {
@@ -151,6 +154,17 @@ export const StudentDashboard = () => {
                       </button>
                     )}
 
+                    {['approved', 'checked_in', 'completed'].includes(b.status) && (
+                      <button
+                        onClick={() => setActiveIncidentBooking(b)}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 flex items-center gap-1 transition"
+                        title="Step 9: Report damage, delay or misuse"
+                      >
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                        Report Issue
+                      </button>
+                    )}
+
                     <button
                       onClick={() => setActiveAuditBookingId(b.id)}
                       className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center gap-1 transition"
@@ -175,6 +189,18 @@ export const StudentDashboard = () => {
           onClose={() => setActiveChecklist(null)}
           onSuccess={() => {
             setActiveChecklist(null);
+            loadBookings();
+          }}
+        />
+      )}
+
+      {/* Incident / Dispute Reporting Modal (Step 9) */}
+      {activeIncidentBooking && (
+        <IncidentModal
+          booking={activeIncidentBooking}
+          onClose={() => setActiveIncidentBooking(null)}
+          onSuccess={() => {
+            setActiveIncidentBooking(null);
             loadBookings();
           }}
         />
