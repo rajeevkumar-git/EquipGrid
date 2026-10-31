@@ -151,7 +151,7 @@ venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Seed realistic institutional equipment & demo accounts
+# Clean-wipe previous catalogs and seed 30 verified resources with realistic pricing & slots
 python seed_data.py
 
 # Start the development server
@@ -159,6 +159,7 @@ uvicorn app.main:app --reload --port 8000
 ```
 - **Interactive Swagger Documentation:** [http://localhost:8000/docs](http://localhost:8000/docs)
 - **Redoc Documentation:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
+- **Catalog Reseed Maintenance Endpoint:** `POST /api/resources/reseed` (instant cloud catalog reset)
 
 ### 3. Frontend Setup (React + Vite + TailwindCSS)
 In a new terminal window:
@@ -215,6 +216,22 @@ For hackathon judges and institutional evaluators, EquipGrid includes a discreet
 4. **Step 4 — Administrative Audit Trail:**
    - Switch to **Admin (Institutional Head)**.
    - Open **"Audit History"** from the navigation menu to review the immutable, timestamped record of every user action.
+
+---
+
+## 📸 Application Previews & UI Gallery
+
+High-resolution visual captures from the verified live environment:
+
+| View | Screenshot Preview | Description |
+| :--- | :--- | :--- |
+| **01. Institutional Portal** | ![Landing Portal](docs/screenshots/01_landing_portal.png) | Landing portal highlighting trusted inter-institutional equipment sharing and 10-step custody lifecycle. |
+| **02. Stream-Wise Catalog** | ![30-Resource Catalog](docs/screenshots/02_catalog_30_resources.png) | 30 verified academic instruments across CSE, ECE, Mechanical, Nanotech, Biotech, and Civil with realistic pricing. |
+| **03. Student Dashboard** | ![Student Dashboard](docs/screenshots/03_student_dashboard.png) | Active borrower reservations, two-stage UPI caution deposit split receipts, and check-in status. |
+| **04. Lab Manager Dashboard** | ![Manager Dashboard](docs/screenshots/04_manager_dashboard.png) | Faculty reservation approvals, condition checklist reviews, and equipment status controls. |
+| **05. Audit History Ledger** | ![Audit History](docs/screenshots/05_audit_history.png) | Immutable cryptographic SHA-256 audit log tracking every reservation, return, and financial clearance. |
+
+> 📘 **Detailed Technical Documentation:** For the exhaustive 12-section architecture guide, mathematical priority scoring models, and QA verification manual, see [`EQUIPGRID_MASTER_TECHNICAL_REPORT_FOR_AMAN.md`](EQUIPGRID_MASTER_TECHNICAL_REPORT_FOR_AMAN.md).
 
 ---
 

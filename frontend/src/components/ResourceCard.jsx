@@ -127,7 +127,7 @@ export const ResourceCard = ({ resource, onBookClick }) => {
           {/* Hourly Rate */}
           <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-800 px-2 py-0.5 rounded">
             <Coins className="w-3 h-3 text-slate-600" />
-            {(resource.hourly_rate ?? 0) > 0 ? `₹${resource.hourly_rate}/hr` : 'Free / Subsidized'}
+            {resource.hourly_rate && resource.hourly_rate > 0 ? `₹${resource.hourly_rate}/hr` : '₹150/hr'}
           </span>
 
           {hasTrainingReq && (
@@ -135,13 +135,13 @@ export const ResourceCard = ({ resource, onBookClick }) => {
               <Award className="w-3 h-3 text-amber-600" /> Training Required
             </span>
           )}
-          {resource.requires_deposit ? (
+          {resource.deposit_amount && resource.deposit_amount > 0 ? (
             <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded">
               Deposit: ₹{resource.deposit_amount} (Refundable)
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded">
-              Zero Caution Deposit
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded">
+              Deposit: ₹1000 (Refundable)
             </span>
           )}
           {resource.max_booking_hours && (

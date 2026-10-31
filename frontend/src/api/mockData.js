@@ -202,7 +202,7 @@ export const MOCK_RESOURCES = [
   },
   {
     id: 'res-7',
-    name: 'Keysight N9020B 10Hz–50GHz Spectrum Analyzer',
+    name: 'Keysight N9020B 10Hz-50GHz Spectrum Analyzer',
     institution: 'NIT Trichy RF & Microwave Lab',
     category: 'device',
     stream: 'Electronics & VLSI (ECE)',
@@ -907,7 +907,7 @@ export const MOCK_RESOURCES = [
   },
   {
     id: 'res-29',
-    name: 'Cleanroom B4 — Photolithography Bench',
+    name: 'Cleanroom B4 - Photolithography Bench',
     institution: 'IIT Delhi Nano Centre',
     category: 'lab',
     stream: 'Nanotechnology & Physics',

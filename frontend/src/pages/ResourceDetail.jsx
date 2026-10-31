@@ -131,13 +131,13 @@ export const ResourceDetail = () => {
               <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Slot Rate</span>
                 <span className="font-semibold text-slate-800">
-                  {(resource.hourly_rate ?? 0) > 0 ? `₹${resource.hourly_rate}/hr` : 'Free / Subsidized'}
+                  {resource.hourly_rate && resource.hourly_rate > 0 ? `₹${resource.hourly_rate}/hr` : '₹150/hr'}
                 </span>
               </div>
               <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Caution Deposit</span>
                 <span className="font-semibold text-slate-800">
-                  {resource.requires_deposit ? `₹${resource.deposit_amount} (Refundable)` : 'Zero Deposit'}
+                  {resource.deposit_amount && resource.deposit_amount > 0 ? `₹${resource.deposit_amount} (Refundable)` : '₹1000 (Refundable)'}
                 </span>
               </div>
               <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs">

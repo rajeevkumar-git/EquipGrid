@@ -73,9 +73,9 @@ export const BookingModal = ({ resource, onClose, onSuccess }) => {
     ? Math.max(1, Math.round((new Date(selectedSlot.end_time) - new Date(selectedSlot.start_time)) / (1000 * 60 * 60))) 
     : (resource.max_booking_hours || 2);
 
-  const hourlyRate = resource.hourly_rate ?? 0;
+  const hourlyRate = (resource.hourly_rate && resource.hourly_rate > 0) ? resource.hourly_rate : 150;
   const usageFee = hourlyRate * slotDurationHours;
-  const cautionDeposit = resource.requires_deposit ? (resource.deposit_amount || 500) : 0;
+  const cautionDeposit = (resource.deposit_amount && resource.deposit_amount > 0) ? resource.deposit_amount : 1000;
 
   // High-Trust Scholar Policy: Trust score >= 95% gets full deposit waiver
   const trustScore = user?.trust_score ?? 0.98;

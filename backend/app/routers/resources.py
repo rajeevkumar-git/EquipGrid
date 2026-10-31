@@ -28,9 +28,15 @@ def list_resources(
     Prevents prominent institutions from monopolizing search traffic by promoting
     underutilized assets from diverse colleges and makerspaces.
     """
-    # Self-heal catalog on live instances if not yet seeded with all 30 resources
-    if db.query(Resource).filter(Resource.is_active == True).count() < 30:
+    # Self-heal catalog on live instances if not yet seeded with all 30 resources or zero-rate legacy data
+    active_count = db.query(Resource).filter(Resource.is_active == True).count()
+    zero_count = db.query(Resource).filter(Resource.is_active == True, Resource.hourly_rate <= 0).count() if active_count > 0 else 0
+    if active_count != 30 or zero_count > 0:
         try:
+            import sys, os
+            backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            if backend_dir not in sys.path:
+                sys.path.insert(0, backend_dir)
             import seed_data
             seed_data.seed()
         except Exception as e:
@@ -270,3 +276,22 @@ def add_slot(
     db.commit()
     db.refresh(slot)
     return slot
+
+
+@router.post("/reseed")
+def reseed_catalog(db: Session = Depends(get_db)):
+    """
+    On-demand maintenance endpoint to clean all previous catalog resources
+    and populate exactly the 30 verified academic resources with realistic pricing.
+    """
+    try:
+        import sys, os
+        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        if backend_dir not in sys.path:
+            sys.path.insert(0, backend_dir)
+        import seed_data
+        seed_data.seed()
+        count = db.query(Resource).filter(Resource.is_active == True).count()
+        return {"status": "success", "message": "Catalog wiped and 30 items seeded successfully", "count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Reseed failed: {str(e)}")

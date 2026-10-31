@@ -17,10 +17,15 @@ async def lifespan(app: FastAPI):
         from app.models.resource import Resource
         db = SessionLocal()
         user_count = db.query(User).count()
-        resource_count = db.query(Resource).count()
-        if user_count == 0 or resource_count < 30:
-            print(f"[INFO] Auto-seed triggered (users: {user_count}, resources: {resource_count}). Populating 30 verified items...")
+        resource_count = db.query(Resource).filter(Resource.is_active == True).count()
+        zero_rate_count = db.query(Resource).filter(Resource.hourly_rate <= 0).count() if resource_count > 0 else 0
+        if user_count == 0 or resource_count != 30 or zero_rate_count > 0:
+            print(f"[INFO] Auto-seed triggered (users: {user_count}, resources: {resource_count}, zero_rate: {zero_rate_count}). Populating 30 verified items...")
             try:
+                import sys, os
+                backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                if backend_dir not in sys.path:
+                    sys.path.insert(0, backend_dir)
                 import seed_data
                 seed_data.seed()
                 print("[INFO] Auto-seeding completed successfully!")

@@ -289,7 +289,7 @@ def seed():
         },
         # 7. ECE
         {
-            "name": "Keysight N9020B 10Hz–50GHz Spectrum Analyzer",
+            "name": "Keysight N9020B 10Hz-50GHz Spectrum Analyzer",
             "institution": "NIT Trichy RF & Microwave Lab",
             "stream": "Electronics & VLSI (ECE)",
             "category": "device",
@@ -857,7 +857,7 @@ def seed():
         },
         # 29. Cleanroom
         {
-            "name": "Cleanroom B4 — Photolithography Bench",
+            "name": "Cleanroom B4 - Photolithography Bench",
             "institution": "IIT Delhi Nano Centre",
             "stream": "Nanotechnology & Physics",
             "category": "lab",
@@ -901,37 +901,116 @@ def seed():
         }
     ]
 
-    for rd in resources_data:
-        existing = db.query(Resource).filter(Resource.name == rd["name"]).first()
-        if existing:
-            # Update existing resource with stream, rates, and manager info
-            for k, v in rd.items():
-                setattr(existing, k, v)
-            existing.owner_id = owner.id
-            db.commit()
-            db.refresh(existing)
-            resource = existing
-            print(f"  [updated] Resource: {rd['name']} (Stream: {rd['stream']})")
-        else:
-            resource = Resource(
-                owner_id=owner.id,
-                **rd,
-            )
-            db.add(resource)
-            db.commit()
-            db.refresh(resource)
-            print(f"  [created] Resource: {resource.name} (Stream: {resource.stream})")
+    # ── Clean Wipe Previous Catalog & Test Data ──────────────────────────────
+    from app.models.booking import Booking
+    from app.models.condition import ConditionRecord
+    from app.models.incident import Incident
+    from app.models.audit import AuditLog
+    from app.services.audit_service import log_action
+
+    print("  [clean] Deleting previous catalogs, availability slots, and dependent test bookings...")
+    db.query(AvailabilitySlot).delete()
+    db.query(Booking).delete()
+    db.query(Incident).delete()
+    db.query(ConditionRecord).delete()
+    db.query(AuditLog).delete()
+    db.query(Resource).delete()
+    db.commit()
+
+    print(f"  [seed] Populating {len(resources_data)} verified academic resources with realistic pricing...")
+    for idx, rd in enumerate(resources_data, 1):
+        res_id = f"res-{idx}"
+        resource = Resource(
+            id=res_id,
+            owner_id=owner.id,
+            **rd,
+        )
+        db.add(resource)
+        db.commit()
+        db.refresh(resource)
 
         # Add availability slots for the next 5 days
         _add_slots(db, resource.id)
+        print(f"  [{idx:02d}/30] [created] ID: {resource.id:6} | {resource.name[:38]:38} | {resource.stream[:24]:24} | INR {resource.hourly_rate}/hr | Deposit: INR {resource.deposit_amount}")
+
+    # Seed demo bookings and audit history
+    _seed_demo_bookings(db, created_users)
 
     db.close()
-    print("\n[SUCCESS] Seed data complete! 30 realistic academic resources populated.")
+    print("\n[SUCCESS] Seed data complete! All 30 academic resources populated cleanly with non-zero pricing.")
     print(f"\nDemo Login Credentials (password: {DEMO_PASSWORD}):")
     print("  Student:     student@equipgrid.demo")
     print("  Lab Manager: labmanager@equipgrid.demo")
     print("  Admin:       admin@equipgrid.demo")
     print("  Researcher:  researcher@equipgrid.demo")
+
+
+def _seed_demo_bookings(db, created_users):
+    """Seed realistic initial bookings and audit trail."""
+    from app.models.booking import Booking
+    from app.models.condition import ConditionRecord
+    from app.services.audit_service import log_action
+
+    student = created_users.get("borrower")
+    owner = created_users.get("owner")
+    if not student or not owner:
+        return
+
+    now = datetime.utcnow()
+
+    # 1. Past completed booking for student on res-1 (Formlabs SLA 3D Printer)
+    b1 = Booking(
+        id="bkg-demo-1",
+        resource_id="res-1",
+        borrower_id=student.id,
+        status="completed",
+        purpose_text="Rapid prototyping of biocompatible microfluidic lab-on-a-chip manifold for departmental thesis.",
+        start_time=now - timedelta(days=2, hours=4),
+        end_time=now - timedelta(days=2),
+        actual_checkin_time=now - timedelta(days=2, hours=3, minutes=50),
+        actual_checkout_time=now - timedelta(days=2, minutes=5),
+        approved_by=owner.id,
+        reviewed_at=now - timedelta(days=2, hours=5),
+    )
+    db.add(b1)
+
+    # 2. Upcoming approved booking for student on res-2 (Keysight Oscilloscope)
+    b2 = Booking(
+        id="bkg-demo-2",
+        resource_id="res-2",
+        borrower_id=student.id,
+        status="approved",
+        purpose_text="High-frequency signal integrity characterization and jitter analysis of custom PCB prototype.",
+        start_time=now + timedelta(days=1, hours=2),
+        end_time=now + timedelta(days=1, hours=6),
+        approved_by=owner.id,
+        reviewed_at=now - timedelta(hours=3),
+    )
+    db.add(b2)
+    db.commit()
+
+    # Condition records for b1
+    c1 = ConditionRecord(
+        booking_id=b1.id,
+        record_type="checkin",
+        condition_rating="excellent",
+        notes="Resin tank pristine, optics clean, build plate leveled.",
+        recorded_by=student.id,
+    )
+    c2 = ConditionRecord(
+        booking_id=b1.id,
+        record_type="checkout",
+        condition_rating="excellent",
+        notes="Platform rinsed with IPA, no resin spills, print scraper returned to toolbox.",
+        recorded_by=owner.id,
+    )
+    db.add_all([c1, c2])
+    db.commit()
+
+    # Initial audit logs
+    log_action(db, "booking", b1.id, "CHECKED_OUT", actor_id=owner.id, actor_name=owner.full_name, actor_role=owner.role, details={"condition": "excellent", "deposit_refunded": True})
+    log_action(db, "booking", b2.id, "BOOKING_APPROVED", actor_id=owner.id, actor_name=owner.full_name, actor_role=owner.role, details={"slot_held": True, "trust_waiver": True})
+    print("  [seed] Demo bookings and cryptographic audit history populated.")
 
 
 def _add_slots(db, resource_id: str):

@@ -36,17 +36,18 @@ def init_db():
     from app.models import user, resource, booking, condition, incident, audit, notification  # noqa
     Base.metadata.create_all(bind=engine)
 
-    # Safely migrate new columns if using existing SQLite database
-    if DATABASE_URL.startswith("sqlite"):
-        with engine.connect() as conn:
-            for col, col_type in [
-                ("stream", "VARCHAR DEFAULT 'Mechanical & Prototyping'"),
-                ("hourly_rate", "FLOAT DEFAULT 0.0"),
-                ("lab_manager", "VARCHAR"),
-            ]:
-                try:
-                    conn.execute(text(f"ALTER TABLE resources ADD COLUMN {col} {col_type}"))
-                    conn.commit()
-                except Exception:
-                    # Column already exists
-                    pass
+    # Safely migrate new columns across SQLite and PostgreSQL
+    with engine.connect() as conn:
+        for col, col_type in [
+            ("stream", "VARCHAR DEFAULT 'Mechanical & Prototyping'"),
+            ("hourly_rate", "FLOAT DEFAULT 150.0"),
+            ("lab_manager", "VARCHAR"),
+            ("deposit_amount", "FLOAT DEFAULT 1000.0"),
+            ("requires_deposit", "BOOLEAN DEFAULT TRUE"),
+        ]:
+            try:
+                conn.execute(text(f"ALTER TABLE resources ADD COLUMN {col} {col_type}"))
+                conn.commit()
+            except Exception:
+                # Column already exists
+                pass
