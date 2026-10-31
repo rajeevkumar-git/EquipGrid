@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app.models.user import User
 from app.schemas import RegisterRequest, LoginRequest, TokenResponse, UserOut
@@ -12,26 +14,39 @@ router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == payload.email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
+    clean_email = payload.email.strip().lower()
+
+    # Strict case-insensitive duplicate user check
+    if db.query(User).filter(func.lower(User.email) == clean_email).first():
+        raise HTTPException(
+            status_code=400,
+            detail="An account with this email address already exists. Please sign in instead."
+        )
 
     allowed_roles = {"borrower", "owner", "admin"}
     if payload.role not in allowed_roles:
         raise HTTPException(status_code=400, detail=f"Role must be one of: {allowed_roles}")
 
-    user = User(
-        email=payload.email,
-        password_hash=hash_password(payload.password),
-        full_name=payload.full_name,
-        role=payload.role,
-        institutional_affiliation=payload.institutional_affiliation,
-        department=payload.department,
-        phone=payload.phone,
-        is_verified=(payload.role == "admin"),
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    try:
+        user = User(
+            email=clean_email,
+            password_hash=hash_password(payload.password),
+            full_name=payload.full_name.strip(),
+            role=payload.role,
+            institutional_affiliation=payload.institutional_affiliation,
+            department=payload.department,
+            phone=payload.phone,
+            is_verified=(payload.role == "admin"),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="An account with this email address already exists. Please sign in instead."
+        )
 
     log_action(
         db, entity_type="user", entity_id=user.id,
@@ -46,7 +61,8 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
+    clean_email = payload.email.strip().lower()
+    user = db.query(User).filter(func.lower(User.email) == clean_email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
@@ -97,10 +113,11 @@ def demo_login(user_email: str, db: Session = Depends(get_db)):
         "admin@equipgrid.demo",
         "researcher@equipgrid.demo",
     ]
-    if user_email not in demo_emails:
+    clean_email = user_email.strip().lower()
+    if clean_email not in demo_emails:
         raise HTTPException(status_code=403, detail="Only demo accounts allow passwordless login")
 
-    user = db.query(User).filter(User.email == user_email).first()
+    user = db.query(User).filter(func.lower(User.email) == clean_email).first()
     if not user:
         raise HTTPException(status_code=404, detail="Demo user not found — run seed_data.py first")
 

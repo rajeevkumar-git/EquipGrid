@@ -41,8 +41,13 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    const cleanEmail = (loginEmail || '').trim().toLowerCase();
+    if (!cleanEmail || !loginPassword) {
+      setError('Please enter both email and password');
+      return;
+    }
     setLoading(true);
-    const res = await login(loginEmail, loginPassword);
+    const res = await login(cleanEmail, loginPassword);
     setLoading(false);
     if (res.success) {
       onClose();
@@ -57,12 +62,24 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
-    if (!registerData.full_name.trim() || !registerData.email.trim() || !registerData.password) {
+    const cleanEmail = (registerData.email || '').trim().toLowerCase();
+    const cleanName = (registerData.full_name || '').trim();
+
+    if (!cleanName || !cleanEmail || !registerData.password) {
       setError('Please fill in all required fields');
       return;
     }
+    if (registerData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
     setLoading(true);
-    const res = await register(registerData);
+    const res = await register({
+      ...registerData,
+      full_name: cleanName,
+      email: cleanEmail,
+    });
     setLoading(false);
     if (res.success) {
       setSuccessMsg('Account created successfully!');
@@ -73,7 +90,7 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
         }
       }, 1000);
     } else {
-      setError(res.error || 'Registration failed');
+      setError(res.error || 'An account with this email address already exists. Please sign in instead.');
     }
   };
 
@@ -145,7 +162,7 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
         {/* Form Body */}
         <div className="p-6">
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+            <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
               {error}
             </div>
           )}

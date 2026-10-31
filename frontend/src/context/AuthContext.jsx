@@ -120,18 +120,23 @@ export const AuthProvider = ({ children }) => {
   // Standard Login (Email & Password)
   const login = async (email, password) => {
     setLoading(true);
+    const cleanEmail = (email || '').trim().toLowerCase();
     try {
-      const res = await api.post('/api/auth/login', { email, password });
+      const res = await api.post('/api/auth/login', { email: cleanEmail, password });
       const { access_token, user_id, role, full_name } = res.data;
       localStorage.setItem('equipgrid_token', access_token);
       setToken(access_token);
-      const userData = { id: user_id, email, full_name, role };
+      const userData = { id: user_id, email: cleanEmail, full_name, role };
       localStorage.setItem('equipgrid_user', JSON.stringify(userData));
       setUser(userData);
       return { success: true };
     } catch (err) {
+      // If backend explicitly rejected the login credentials (401 or 400), return the error
+      if (err.response?.data?.detail) {
+        return { success: false, error: err.response.data.detail };
+      }
       // If backend is offline or connecting, check if it matches a demo persona
-      const demoMatch = demoPersonas.find(p => p.email.toLowerCase() === email.toLowerCase());
+      const demoMatch = demoPersonas.find(p => p.email.toLowerCase() === cleanEmail);
       if (demoMatch) {
         const fallbackUser = {
           id: demoMatch.email.split('@')[0],
@@ -153,24 +158,57 @@ export const AuthProvider = ({ children }) => {
   // Standard Register
   const register = async (formData) => {
     setLoading(true);
+    const cleanEmail = (formData.email || '').trim().toLowerCase();
+    const cleanPayload = {
+      ...formData,
+      email: cleanEmail,
+      full_name: (formData.full_name || '').trim(),
+    };
+
     try {
-      const res = await api.post('/api/auth/register', formData);
+      const res = await api.post('/api/auth/register', cleanPayload);
       const { access_token, user_id, role, full_name } = res.data;
       localStorage.setItem('equipgrid_token', access_token);
       setToken(access_token);
-      const userData = { id: user_id, email: formData.email, full_name, role };
+      const userData = { id: user_id, email: cleanEmail, full_name, role };
       localStorage.setItem('equipgrid_user', JSON.stringify(userData));
       setUser(userData);
       return { success: true };
     } catch (err) {
-      // If backend is offline/connecting, create local mock session
+      // If backend responded with an error (e.g., 400 Duplicate Email, validation error), NEVER swallow it!
+      if (err.response?.data?.detail) {
+        return { success: false, error: err.response.data.detail };
+      }
+      if (err.response?.status === 400 || err.response?.status === 409) {
+        return { success: false, error: 'An account with this email address already exists. Please sign in instead.' };
+      }
+
+      // Check collision with demo persona accounts even in offline mode
+      const demoCollision = demoPersonas.find(p => p.email.toLowerCase() === cleanEmail);
+      if (demoCollision) {
+        return { success: false, error: 'An account with this email address already exists. Please sign in instead.' };
+      }
+
+      // Check collision with previously registered offline accounts
+      try {
+        const storedAccounts = JSON.parse(localStorage.getItem('equipgrid_registered_accounts') || '[]');
+        if (storedAccounts.some(acc => acc.email.toLowerCase() === cleanEmail)) {
+          return { success: false, error: 'An account with this email address already exists. Please sign in instead.' };
+        }
+        storedAccounts.push({ email: cleanEmail, full_name: cleanPayload.full_name, role: cleanPayload.role });
+        localStorage.setItem('equipgrid_registered_accounts', JSON.stringify(storedAccounts));
+      } catch (e) {
+        // storage fallback
+      }
+
+      // If backend is truly unreachable / network error, only create fallback user if not duplicate
       const fallbackUser = {
         id: 'user-' + Date.now(),
-        email: formData.email,
-        full_name: formData.full_name,
-        role: formData.role,
-        institutional_affiliation: formData.institutional_affiliation,
-        department: formData.department,
+        email: cleanEmail,
+        full_name: cleanPayload.full_name,
+        role: cleanPayload.role,
+        institutional_affiliation: cleanPayload.institutional_affiliation,
+        department: cleanPayload.department,
       };
       setUser(fallbackUser);
       localStorage.setItem('equipgrid_user', JSON.stringify(fallbackUser));
