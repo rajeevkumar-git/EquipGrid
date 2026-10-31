@@ -7,7 +7,7 @@
 [![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB.svg)](https://vitejs.dev)
 [![Tailwind CSS](https://img.shields.io/badge/UI-Tailwind%20CSS-38B2AC.svg)](https://tailwindcss.com)
 [![AI Integration](https://img.shields.io/badge/AI-Google%20Gemini%201.5%20Flash-8E75C2.svg)](https://ai.google.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Project%20Status-Active%20Demo-success.svg)]()
 
 ---
 
@@ -60,13 +60,14 @@ Traditional calendar and room-booking systems cannot solve this crisis because t
 
 ## 🌟 Key Features & Capabilities
 
-### 1. 🎓 Academic Stream-Wise Resource Discovery
-Filter specialized lab resources by departmental stream or domain:
-- **Electronics & Communication (ECE):** High-frequency oscilloscopes, spectrum analyzers, FPGA development boards.
-- **Mechanical & Fabrication:** Industrial SLA 3D printers, 5-axis CNC mills, laser cutters.
-- **Biotechnology & Chemical:** Centrifuges, spectrophotometers, incubators.
-- **Computer Science & AI:** Edge TPU clusters, GPU acceleration servers.
-- **Materials Science:** Surface profilers, spin coaters, hardness testers.
+### 1. 🎓 Academic Stream-Wise Resource Discovery (30 Verified Assets)
+Filter specialized lab resources by departmental stream or engineering domain:
+- **Computer Science & AI (CSE):** NVIDIA DGX Supercomputing Cluster, Dual RTX 4090 Workstations, Edge TPU Racks, Cyber-Physical IoT Testbeds, High-Speed Vision Kits.
+- **Mechanical & Prototyping:** Industrial Formlabs Form 3+ SLA, Haas 3-Axis CNC Machining Centers, CO2 Laser Cutters, 100kN Universal Testing Machines (UTM).
+- **Electronics & VLSI (ECE):** Keysight 1 GHz Oscilloscopes, Keysight 50 GHz Spectrum Analyzers, Rohde & Schwarz 40 GHz VNAs, Xilinx RFSoC Development Clusters.
+- **Nanotechnology & Physics:** Field Emission SEMs (FE-SEM), Atomic Force Microscopes (AFM), 9kW Rotating Anode XRDs, ISO Class 5 Cleanroom Photolithography Benches.
+- **Biotechnology & Life Sciences:** Eppendorf BioFlo Fermentation Bioreactors, Preparative Ultracentrifuges, Confocal Laser Scanning Microscopes, High-Speed Cell Sorters.
+- **Civil & Environmental Engineering:** Automated Triaxial Soil Mechanics Systems, Robotic Total Station Laser Surveying & LiDAR Suites.
 
 ### 2. 🔄 End-to-End 10-Step Custody Lifecycle
 1. **Resource Publication:** Lab in-charges publish instruments with baseline specs, photos, supervisor requirements, and usage rules.
@@ -261,7 +262,7 @@ EquipGrid/
 
 ---
 
-## 📄 License & Institutional Integrity
-EquipGrid was created as original software for institutional resource optimization. All product names, trademarks, and registered trademarks cited in demo datasets belong to their respective holders and are used solely for educational and demonstrative purposes.
+## 📄 Intellectual Property & Institutional Rights
+EquipGrid was created as original proprietary software developed for institutional equipment sharing, optimization, and hackathon evaluation. All rights are reserved by the development team.
 
-Licensed under the [MIT License](LICENSE).
+All equipment brand names, model trademarks, manufacturer insignias, and institutional names cited across the dataset (e.g. Keysight, Haas, Formlabs, Zeiss, NVIDIA, IIT Delhi, DTU, NSUT) belong strictly to their respective registered holders and are utilized solely for educational simulation and prototype demonstration.
