@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { JudgeDemoBanner } from './components/JudgeDemoBanner';
 import { JudgeAccessModal } from './components/JudgeAccessModal';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
 import { LandingPage } from './pages/LandingPage';
@@ -39,10 +40,40 @@ function AppContent() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/resource/:id" element={<ResourceDetail />} />
-          <Route path="/student-dashboard" element={<StudentDashboard />} />
-          <Route path="/manager-dashboard" element={<ManagerDashboard />} />
-          <Route path="/audit-history" element={<AuditLogPage />} />
-          <Route path="/new-resource" element={<NewResourcePage />} />
+          
+          {/* Strictly Protected Institutional Portals */}
+          <Route 
+            path="/student-dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['borrower']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/manager-dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['owner', 'admin']}>
+                <ManagerDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/audit-history" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AuditLogPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/new-resource" 
+            element={
+              <ProtectedRoute allowedRoles={['owner', 'admin']}>
+                <NewResourcePage />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </main>
 

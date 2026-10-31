@@ -52,7 +52,7 @@ export const Navbar = () => {
     }
   };
 
-  // Adaptive Navigation links
+  // Strict Role-Based Navigation links (Guest only sees Home & Explore)
   const navLinks = [
     { to: '/', label: 'Home', icon: Layers },
     { to: '/catalog', label: 'Explore Equipment', icon: Compass },
@@ -67,13 +67,11 @@ export const Navbar = () => {
                 { to: '/new-resource', label: 'List Equipment', icon: PlusCircle },
               ]
             : []),
+          ...(user.role === 'admin' || isJudgeMode
+            ? [{ to: '/audit-history', label: 'Audit Trail', icon: History }]
+            : []),
         ]
-      : [
-          // For guests: enable full exploration of student & manager workflows
-          { to: '/student-dashboard', label: 'Student Portal', icon: Calendar },
-          { to: '/manager-dashboard', label: 'Lab Governance', icon: ShieldCheck },
-        ]),
-    { to: '/audit-history', label: 'Audit Trail', icon: History },
+      : []),
   ];
 
   return (

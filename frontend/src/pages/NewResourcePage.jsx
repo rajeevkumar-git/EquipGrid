@@ -78,24 +78,6 @@ export const NewResourcePage = () => {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Guest Mode Notice */}
-      {!user && (
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 rounded-2xl shadow-sm flex items-center justify-between gap-4 border border-indigo-700/50 text-xs">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
-            <span>
-              <strong>Guest Explorer Mode:</strong> You are previewing Step 1 of the Custody Lifecycle (Resource Onboarding). Sign in as a Faculty Lab In-charge to publish.
-            </span>
-          </div>
-          <button
-            onClick={() => openAuthModal('login')}
-            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 font-bold text-white shrink-0 flex items-center gap-1 shadow-xs"
-          >
-            <LogIn className="w-3.5 h-3.5" /> Sign In
-          </button>
-        </div>
-      )}
-
       <div>
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Step 1: List Institutional Resource</h1>
         <p className="text-xs text-slate-500">Define access rules, training requirements, custody checklist, and fair usage quotas.</p>

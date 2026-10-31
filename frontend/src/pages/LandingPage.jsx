@@ -25,8 +25,12 @@ export const LandingPage = () => {
   const handlePersonaEntry = async (email, destination) => {
     if (isJudgeMode) {
       await switchDemoUser(email);
+      navigate(destination);
+    } else if (user) {
+      navigate(destination);
+    } else {
+      openAuthModal('login');
     }
-    navigate(destination);
   };
 
   const steps = [
