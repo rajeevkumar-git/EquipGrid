@@ -10,6 +10,22 @@ from app.routers import auth, resources, bookings, incidents, audit, fairness, n
 async def lifespan(app: FastAPI):
     # Startup: create all DB tables
     init_db()
+    # Auto-seed demo data if brand new database
+    try:
+        from app.database import SessionLocal
+        from app.models.user import User
+        db = SessionLocal()
+        if db.query(User).count() == 0:
+            print("[INFO] Empty database detected on startup. Running auto-seed...")
+            try:
+                import seed_data
+                seed_data.seed()
+                print("[INFO] Auto-seeding completed successfully!")
+            except Exception as se:
+                print(f"[WARN] Auto-seed failed: {se}")
+        db.close()
+    except Exception as e:
+        print(f"[WARN] DB check during startup failed: {e}")
     yield
     # Shutdown (nothing needed)
 
