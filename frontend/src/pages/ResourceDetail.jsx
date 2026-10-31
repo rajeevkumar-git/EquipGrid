@@ -79,8 +79,12 @@ export const ResourceDetail = () => {
         {/* Gallery */}
         <div className="h-72 md:h-full bg-slate-100 relative">
           <img
-            src={resource.images?.[0] || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800'}
+            src={resource.images?.[0] || 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800'}
             alt={resource.name}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800';
+            }}
             className="w-full h-full object-cover"
           />
           <div className="absolute top-4 left-4 flex gap-2">

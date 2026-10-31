@@ -27,6 +27,10 @@ export const ResourceCard = ({ resource, onBookClick }) => {
           <img
             src={resource.images[0]}
             alt={resource.name}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800';
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

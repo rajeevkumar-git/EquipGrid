@@ -11,7 +11,7 @@ export const MOCK_RESOURCES = [
     utilization_rate: 0.28,
     hourly_rate: 150.0,
     description: 'Industrial-grade stereolithography 3D printer for high-resolution resin prototypes. 25–300 micron layer height. Ideal for mechanical parts and functional prototypes.',
-    images: ['https://images.unsplash.com/photo-1581092921461-39b9d08c0e82?w=800'],
+    images: ['https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800'],
     max_booking_hours: 6,
     max_bookings_per_user_per_month: 4,
     requires_deposit: true,

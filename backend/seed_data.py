@@ -132,7 +132,7 @@ def seed():
             "category": "equipment",
             "location": "Fab Lab, Room 201, Block C",
             "images": [
-                "https://images.unsplash.com/photo-1581092921461-39b9d08c0e82?w=800",
+                "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800",
                 "https://images.unsplash.com/photo-1612198790700-07c12f2c5389?w=800",
             ],
             "max_booking_hours": 6,
