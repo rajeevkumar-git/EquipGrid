@@ -22,6 +22,17 @@ export const LandingPage = () => {
   const { user, switchDemoUser, openAuthModal, isJudgeMode, openJudgeModal } = useAuth();
   const navigate = useNavigate();
 
+  // If a user is logged in, there is no need to show marketing homepage - jump straight into workspace
+  React.useEffect(() => {
+    if (user) {
+      if (user.role === 'borrower') {
+        navigate('/catalog', { replace: true });
+      } else {
+        navigate('/manager-dashboard', { replace: true });
+      }
+    }
+  }, [user, navigate]);
+
   const handlePersonaEntry = async (email, destination) => {
     if (isJudgeMode) {
       await switchDemoUser(email);

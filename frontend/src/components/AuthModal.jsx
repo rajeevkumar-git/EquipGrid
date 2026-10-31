@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { X, Lock, Mail, User, Building, Briefcase, Phone, ShieldCheck, ArrowRight, Sparkles, Scale, Info } from 'lucide-react';
 
 export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
+  const navigate = useNavigate();
   const { 
     login, 
     register, 
@@ -44,6 +46,9 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
     setLoading(false);
     if (res.success) {
       onClose();
+      if (!pendingBookingResource) {
+        navigate('/catalog');
+      }
     } else {
       setError(res.error || 'Invalid email or password');
     }
@@ -63,6 +68,9 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
       setSuccessMsg('Account created successfully!');
       setTimeout(() => {
         onClose();
+        if (!pendingBookingResource) {
+          navigate(registerData.role === 'borrower' ? '/catalog' : '/manager-dashboard');
+        }
       }, 1000);
     } else {
       setError(res.error || 'Registration failed');
@@ -75,6 +83,10 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
     await switchDemoUser(email);
     setLoading(false);
     onClose();
+    const persona = demoPersonas.find((p) => p.email === email);
+    if (!pendingBookingResource) {
+      navigate(persona?.role === 'borrower' ? '/catalog' : '/manager-dashboard');
+    }
   };
 
   return (

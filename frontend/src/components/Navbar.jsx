@@ -13,12 +13,22 @@ import {
   LogOut,
   LogIn,
   UserPlus,
-  Scale,
-  Sparkles
+  Lock,
+  X
 } from 'lucide-react';
 
 export const Navbar = () => {
-  const { user, logout, openAuthModal, isJudgeMode, openJudgeModal } = useAuth();
+  const { 
+    user, 
+    logout, 
+    openAuthModal, 
+    isJudgeMode, 
+    openJudgeModal,
+    exitJudgeMode,
+    demoPersonas,
+    switchDemoUser
+  } = useAuth();
+
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
@@ -52,36 +62,36 @@ export const Navbar = () => {
     }
   };
 
-  // Strict Role-Based Navigation links (Guest only sees Home & Explore)
-  const navLinks = [
-    { to: '/', label: 'Home', icon: Layers },
-    { to: '/catalog', label: 'Explore Equipment', icon: Compass },
-    ...(user
-      ? [
-          ...(user.role === 'borrower'
-            ? [{ to: '/student-dashboard', label: 'My Bookings', icon: Calendar }]
-            : []),
-          ...(user.role === 'owner' || user.role === 'admin'
-            ? [
-                { to: '/manager-dashboard', label: 'Lab Dashboard', icon: ShieldCheck },
-                { to: '/new-resource', label: 'List Equipment', icon: PlusCircle },
-              ]
-            : []),
-          ...(user.role === 'admin' || isJudgeMode
-            ? [{ to: '/audit-history', label: 'Audit Trail', icon: History }]
-            : []),
-        ]
-      : []),
-  ];
+  // When logged in, no need for Home link - direct access to operational workspaces
+  const navLinks = user
+    ? [
+        { to: '/catalog', label: 'Explore Equipment', icon: Compass },
+        ...(user.role === 'borrower'
+          ? [{ to: '/student-dashboard', label: 'My Bookings', icon: Calendar }]
+          : []),
+        ...(user.role === 'owner' || user.role === 'admin'
+          ? [
+              { to: '/manager-dashboard', label: 'Lab Dashboard', icon: ShieldCheck },
+              { to: '/new-resource', label: 'List Equipment', icon: PlusCircle },
+            ]
+          : []),
+        ...(user.role === 'admin' || isJudgeMode
+          ? [{ to: '/audit-history', label: 'Audit Trail', icon: History }]
+          : []),
+      ]
+    : [
+        { to: '/', label: 'Home', icon: Layers },
+        { to: '/catalog', label: 'Explore Equipment', icon: Compass },
+      ];
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+        <div className="flex justify-between h-16 items-center gap-2">
           {/* Brand */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-6 shrink-0">
             <Link to="/" className="flex items-center gap-2.5 font-bold text-xl text-slate-900 group">
-              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm group-hover:bg-blue-700 transition">
+              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm group-hover:bg-blue-700 transition shrink-0">
                 <Layers className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
@@ -99,36 +109,65 @@ export const Navbar = () => {
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition whitespace-nowrap ${
                       isActive
                         ? 'bg-blue-50 text-blue-700 font-semibold'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
-                    {link.label}
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{link.label}</span>
                   </Link>
                 );
               })}
             </nav>
           </div>
 
-          {/* Right Controls: Judge Access Pill, Notifications & User Card / Auth Buttons */}
+          {/* Right Controls: Compact Reviewer Switcher, Notifications & User Card */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Judge Mode Trigger (Only shown if not already unlocked) */}
-            {!isJudgeMode ? (
+            {/* Minimal Judge / Evaluator Mode Controls (No giant banners) */}
+            {isJudgeMode ? (
+              <div className="flex items-center gap-1.5 bg-slate-900 text-white px-2.5 py-1 rounded-xl text-xs shadow-xs border border-slate-700 animate-in fade-in">
+                <span className="flex h-2 w-2 relative" title="Evaluator Sandbox Active">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[10px] font-bold text-emerald-400 hidden xl:inline">Evaluator</span>
+                <div className="flex items-center gap-1 border-l border-slate-700 pl-1.5 ml-0.5">
+                  {demoPersonas.map((persona) => {
+                    const isActive = user?.email === persona.email;
+                    return (
+                      <button
+                        key={persona.email}
+                        onClick={() => switchDemoUser(persona.email)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold transition whitespace-nowrap ${
+                          isActive
+                            ? 'bg-indigo-600 text-white shadow-xs'
+                            : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                        }`}
+                        title={persona.label}
+                      >
+                        {persona.role === 'borrower' ? 'Student' : persona.role === 'owner' ? 'Lab In-charge' : 'Admin'}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={exitJudgeMode}
+                  title="Lock & Exit Evaluator Mode"
+                  className="ml-1 text-slate-400 hover:text-rose-400 p-0.5 transition"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
               <button
                 onClick={openJudgeModal}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition flex items-center gap-1.5 shadow-xs"
-                title="Enter Judge Passcode"
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                title="Reviewer Authentication"
               >
-                <Scale className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="hidden sm:inline">Judge Access</span>
+                <Lock className="w-4 h-4" />
               </button>
-            ) : (
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
-                <Sparkles className="w-3 h-3 text-amber-500" /> Judge Active
-              </span>
             )}
 
             {user ? (
@@ -178,14 +217,18 @@ export const Navbar = () => {
                   )}
                 </div>
 
-                {/* User Pill */}
+                {/* User Pill with Strict Truncation to Prevent Header Breaking */}
                 <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-xs font-bold text-blue-800">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-xs font-bold text-blue-800 shrink-0">
                     {user.full_name?.charAt(0) || 'U'}
                   </div>
-                  <div className="hidden sm:flex flex-col text-left">
-                    <span className="text-xs font-semibold text-slate-900 leading-tight">{user.full_name}</span>
-                    <span className="text-[10px] text-blue-600 font-medium capitalize">{user.role}</span>
+                  <div className="hidden sm:flex flex-col text-left max-w-[120px] lg:max-w-[150px]">
+                    <span className="text-xs font-semibold text-slate-900 leading-tight truncate" title={user.full_name}>
+                      {user.full_name}
+                    </span>
+                    <span className="text-[10px] text-blue-600 font-medium capitalize truncate">
+                      {user.role}
+                    </span>
                   </div>
                 </div>
 
@@ -193,7 +236,7 @@ export const Navbar = () => {
                 <button
                   onClick={logout}
                   title="Sign Out"
-                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition shrink-0"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
