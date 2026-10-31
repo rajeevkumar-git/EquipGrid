@@ -28,6 +28,14 @@ def list_resources(
     Prevents prominent institutions from monopolizing search traffic by promoting
     underutilized assets from diverse colleges and makerspaces.
     """
+    # Self-heal catalog on live instances if not yet seeded with all 30 resources
+    if db.query(Resource).filter(Resource.is_active == True).count() < 30:
+        try:
+            import seed_data
+            seed_data.seed()
+        except Exception as e:
+            print(f"[WARN] On-demand auto-seed failed: {e}")
+
     query = db.query(Resource).filter(Resource.is_active == True)
 
     if category and category != "all":
@@ -43,12 +51,16 @@ def list_resources(
         query = query.filter(Resource.stream.ilike(f"%{stream}%"))
 
     if deposit:
-        if deposit == "free":
-            query = query.filter((Resource.requires_deposit == False) | (Resource.deposit_amount == 0))
-        elif deposit == "under_1000":
-            query = query.filter(Resource.requires_deposit == True, Resource.deposit_amount <= 1000)
+        if deposit == "budget" or deposit == "under_1000":
+            query = query.filter(Resource.deposit_amount <= 1000)
+        elif deposit == "mid":
+            query = query.filter(Resource.deposit_amount > 1000, Resource.deposit_amount <= 3000)
+        elif deposit == "premium":
+            query = query.filter(Resource.deposit_amount > 3000)
         elif deposit == "over_1000":
-            query = query.filter(Resource.requires_deposit == True, Resource.deposit_amount > 1000)
+            query = query.filter(Resource.deposit_amount > 1000)
+        elif deposit == "free":
+            query = query.filter((Resource.requires_deposit == False) | (Resource.deposit_amount == 0))
 
     if status:
         query = query.filter(Resource.status == status)

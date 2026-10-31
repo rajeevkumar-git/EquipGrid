@@ -10,13 +10,16 @@ from app.routers import auth, resources, bookings, incidents, audit, fairness, n
 async def lifespan(app: FastAPI):
     # Startup: create all DB tables
     init_db()
-    # Auto-seed demo data if brand new database
+    # Auto-seed demo data if brand new database or missing updated catalog items
     try:
         from app.database import SessionLocal
         from app.models.user import User
+        from app.models.resource import Resource
         db = SessionLocal()
-        if db.query(User).count() == 0:
-            print("[INFO] Empty database detected on startup. Running auto-seed...")
+        user_count = db.query(User).count()
+        resource_count = db.query(Resource).count()
+        if user_count == 0 or resource_count < 30:
+            print(f"[INFO] Auto-seed triggered (users: {user_count}, resources: {resource_count}). Populating 30 verified items...")
             try:
                 import seed_data
                 seed_data.seed()

@@ -101,12 +101,12 @@ export const Catalog = () => {
         if (selectedStream !== 'all') {
           list = list.filter(r => matchesStream(r.stream, selectedStream));
         }
-        if (selectedDeposit === 'free') {
-          list = list.filter(r => !r.requires_deposit || r.deposit_amount === 0);
-        } else if (selectedDeposit === 'under_1000') {
-          list = list.filter(r => r.requires_deposit && r.deposit_amount <= 1000);
-        } else if (selectedDeposit === 'over_1000') {
-          list = list.filter(r => r.requires_deposit && r.deposit_amount > 1000);
+        if (selectedDeposit === 'budget' || selectedDeposit === 'under_1000') {
+          list = list.filter(r => r.deposit_amount <= 1000);
+        } else if (selectedDeposit === 'mid') {
+          list = list.filter(r => r.deposit_amount > 1000 && r.deposit_amount <= 3000);
+        } else if (selectedDeposit === 'premium' || selectedDeposit === 'over_1000') {
+          list = list.filter(r => r.deposit_amount > 3000);
         }
         setResources(list);
       } else {
@@ -131,12 +131,12 @@ export const Catalog = () => {
     if (selectedStream !== 'all') {
       list = list.filter(r => matchesStream(r.stream, selectedStream));
     }
-    if (selectedDeposit === 'free') {
-      list = list.filter(r => !r.requires_deposit || r.deposit_amount === 0);
-    } else if (selectedDeposit === 'under_1000') {
-      list = list.filter(r => r.requires_deposit && r.deposit_amount <= 1000);
-    } else if (selectedDeposit === 'over_1000') {
-      list = list.filter(r => r.requires_deposit && r.deposit_amount > 1000);
+    if (selectedDeposit === 'budget' || selectedDeposit === 'under_1000') {
+      list = list.filter(r => r.deposit_amount <= 1000);
+    } else if (selectedDeposit === 'mid') {
+      list = list.filter(r => r.deposit_amount > 1000 && r.deposit_amount <= 3000);
+    } else if (selectedDeposit === 'premium' || selectedDeposit === 'over_1000') {
+      list = list.filter(r => r.deposit_amount > 3000);
     }
 
     if (search.trim()) {
@@ -275,10 +275,10 @@ export const Catalog = () => {
                 onChange={(e) => setSelectedDeposit(e.target.value)}
                 className="w-full p-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:ring-1 focus:ring-blue-500"
               >
-                <option value="all">All Pricing Tiers</option>
-                <option value="free">Zero Caution Deposit (₹0)</option>
-                <option value="under_1000">Deposit ≤ ₹1,000</option>
-                <option value="over_1000">Deposit &gt; ₹1,000</option>
+                <option value="all">All Pricing & Deposit Tiers</option>
+                <option value="budget">Standard (Deposit ≤ ₹1,000)</option>
+                <option value="mid">Mid Tier (Deposit ₹1,001 – ₹3,000)</option>
+                <option value="premium">High-End Labs (Deposit &gt; ₹3,000)</option>
               </select>
             </div>
           </div>
