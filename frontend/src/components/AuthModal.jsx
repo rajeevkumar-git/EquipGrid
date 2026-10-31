@@ -311,7 +311,6 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
                   >
                     <option value="borrower">👨‍🎓 Student / Researcher</option>
                     <option value="owner">🔬 Lab In-charge / Faculty</option>
-                    <option value="admin">🛡️ Institutional Admin</option>
                   </select>
                 </div>
 

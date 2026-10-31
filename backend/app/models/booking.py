@@ -48,3 +48,25 @@ class Booking(Base):
     borrower = relationship("User", back_populates="bookings")
     condition_records = relationship("ConditionRecord", back_populates="booking", cascade="all, delete-orphan")
     incidents = relationship("Incident", back_populates="booking")
+
+    @property
+    def resource_name(self) -> str:
+        return self.resource.name if self.resource else "Specialized Resource"
+
+    @property
+    def resource_details(self) -> dict:
+        if not self.resource:
+            return {}
+        return {
+            "name": self.resource.name,
+            "category": self.resource.category,
+            "stream": getattr(self.resource, "stream", ""),
+            "institution": self.resource.institution,
+            "location": self.resource.location or "",
+            "condition_checklist": self.resource.condition_checklist or [],
+            "baseline_condition": self.resource.baseline_condition or "good",
+            "images": self.resource.images or [],
+            "lab_manager": getattr(self.resource, "lab_manager", "") or "",
+            "hourly_rate": getattr(self.resource, "hourly_rate", 0.0) or 0.0,
+            "deposit_amount": getattr(self.resource, "deposit_amount", 0.0) or 0.0,
+        }

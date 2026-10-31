@@ -14,8 +14,10 @@ import {
 
 export const ConditionChecklistModal = ({ booking, mode = 'checkin', onClose, onSuccess }) => {
   const isCheckin = mode === 'checkin';
-  const resource = booking.resource || {};
-  const checklistItems = resource.condition_checklist || [
+  const resource = booking.resource || booking.resource_details || {};
+  const checklistItems = (resource.condition_checklist && resource.condition_checklist.length > 0)
+    ? resource.condition_checklist
+    : [
     'No visible structural damage or cracks',
     'All accessories and cables present',
     'Surface cleaned and free of debris',

@@ -114,6 +114,8 @@ def get_quota_status(db: Session, user_id: str, resource_id: str) -> dict:
         "hours_remaining": max(round(max_hours_per_week - hours_used, 2), 0),
         "bookings_this_month": monthly_count,
         "max_bookings_per_month": max_per_month,
+        "current_monthly_count": monthly_count,
+        "max_allowed": max_per_month,
         "is_quota_exceeded": hours_used >= max_hours_per_week,
         "cooldown_active": cooldown_active,
         "cooldown_ends_at": cooldown_ends_at,

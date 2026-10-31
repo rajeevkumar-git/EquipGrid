@@ -15,7 +15,6 @@ import {
   Inbox,
   Wrench,
   CheckCircle2,
-  LogIn,
   Scale
 } from 'lucide-react';
 
@@ -26,7 +25,9 @@ export const ManagerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeAuditBookingId, setActiveAuditBookingId] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
-  const [resolvingIncidentId, setResolvingIncidentId] = useState(null);
+  const [rejectDialog, setRejectDialog] = useState(null); // { bookingId, reason }
+  const [resolveDialog, setResolveDialog] = useState(null); // { incidentId, notes }
+  const [statusNotification, setStatusNotification] = useState(null);
 
   const isAuthorizedManager = user?.role === 'owner' || user?.role === 'admin';
 
@@ -38,25 +39,28 @@ export const ManagerDashboard = () => {
     setLoading(true);
     try {
       const bRes = await api.get('/api/bookings');
-      if (bRes.data && bRes.data.length > 0) {
+      if (Array.isArray(bRes.data)) {
         setBookings(bRes.data);
       } else {
-        const { MOCK_BOOKINGS } = await import('../api/mockData');
-        setBookings(MOCK_BOOKINGS);
+        setBookings([]);
       }
 
       const iRes = await api.get('/api/incidents');
-      if (iRes.data && iRes.data.length > 0) {
+      if (Array.isArray(iRes.data)) {
         setIncidents(iRes.data);
       } else {
-        const { MOCK_INCIDENTS } = await import('../api/mockData');
-        setIncidents(MOCK_INCIDENTS || []);
+        setIncidents([]);
       }
     } catch (err) {
-      console.warn('Failed loading manager data, using mock:', err);
-      const { MOCK_BOOKINGS, MOCK_INCIDENTS } = await import('../api/mockData');
-      setBookings(MOCK_BOOKINGS);
-      setIncidents(MOCK_INCIDENTS || []);
+      console.warn('Failed loading manager data from server, using local mock fallback:', err);
+      try {
+        const { MOCK_BOOKINGS, MOCK_INCIDENTS } = await import('../api/mockData');
+        setBookings(MOCK_BOOKINGS || []);
+        setIncidents(MOCK_INCIDENTS || []);
+      } catch (e) {
+        setBookings([]);
+        setIncidents([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -76,36 +80,48 @@ export const ManagerDashboard = () => {
     }
   };
 
-  const handleReject = async (bookingId) => {
-    const reason = prompt('Specify rejection reason (e.g., missing safety training, lab maintenance):');
-    if (!reason) return;
+  const openRejectDialog = (bookingId) => {
+    setRejectDialog({ bookingId, reason: '' });
+  };
 
+  const confirmReject = async () => {
+    if (!rejectDialog || !rejectDialog.reason.trim()) return;
+    const { bookingId, reason } = rejectDialog;
     setActionLoading(bookingId);
     try {
-      await api.patch(`/api/bookings/${bookingId}/reject`, { reason });
+      await api.patch(`/api/bookings/${bookingId}/reject`, { reason: reason.trim() });
       setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'rejected' } : b)));
+      setStatusNotification('Reservation request declined.');
       loadManagerData();
     } catch (err) {
       console.warn('Reject network fallback:', err);
       setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'rejected' } : b)));
+      setStatusNotification('Reservation marked as rejected.');
     } finally {
       setActionLoading(null);
+      setRejectDialog(null);
+      setTimeout(() => setStatusNotification(null), 3500);
     }
   };
 
-  const handleResolveIncident = async (incidentId) => {
-    const notes = prompt('Enter resolution summary (e.g. Inspected by technician, lens recalibrated, security deposit deducted ₹500):');
-    if (!notes) return;
+  const openResolveDialog = (incidentId) => {
+    setResolveDialog({ incidentId, notes: '' });
+  };
 
+  const confirmResolveIncident = async () => {
+    if (!resolveDialog || !resolveDialog.notes.trim()) return;
+    const { incidentId, notes } = resolveDialog;
     setActionLoading(incidentId);
     try {
-      await api.patch(`/api/incidents/${incidentId}/resolve`, { resolution_notes: notes });
-      alert('Incident resolved! Equipment released from quarantine to available status.');
+      await api.patch(`/api/incidents/${incidentId}/resolve`, { resolution_notes: notes.trim() });
+      setStatusNotification('Incident resolved! Equipment released back to available status.');
       loadManagerData();
     } catch (err) {
-      alert(err.response?.data?.detail || 'Resolution failed');
+      setStatusNotification(err.response?.data?.detail || 'Incident resolution failed.');
     } finally {
       setActionLoading(null);
+      setResolveDialog(null);
+      setTimeout(() => setStatusNotification(null), 3500);
     }
   };
 
@@ -192,7 +208,7 @@ export const ManagerDashboard = () => {
 
                 <div className="shrink-0 flex items-center gap-2">
                   <button
-                    onClick={() => handleResolveIncident(inc.id)}
+                    onClick={() => openResolveDialog(inc.id)}
                     disabled={actionLoading === inc.id}
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm text-xs flex items-center gap-1.5 transition disabled:opacity-50"
                   >
@@ -264,7 +280,7 @@ export const ManagerDashboard = () => {
                       <Check className="w-3.5 h-3.5" /> Approve Slot
                     </button>
                     <button
-                      onClick={() => handleReject(b.id)}
+                      onClick={() => openRejectDialog(b.id)}
                       disabled={actionLoading === b.id}
                       className="px-3.5 py-2 rounded-lg text-xs font-bold bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition disabled:opacity-50"
                     >
@@ -313,6 +329,88 @@ export const ManagerDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Status Notification Toast */}
+      {statusNotification && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{statusNotification}</span>
+        </div>
+      )}
+
+      {/* Decline / Reject Reason Modal */}
+      {rejectDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+            <h3 className="text-sm font-bold text-slate-900">Decline Reservation Request</h3>
+            <p className="text-xs text-slate-500">
+              Provide a clear reason for the student (e.g. missing safety training certification, scheduled maintenance, or quota limit).
+            </p>
+            <textarea
+              autoFocus
+              rows={3}
+              value={rejectDialog.reason}
+              onChange={(e) => setRejectDialog({ ...rejectDialog, reason: e.target.value })}
+              placeholder="e.g. Safety prerequisite not verified; please submit lab certification first."
+              className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none"
+            />
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setRejectDialog(null)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!rejectDialog.reason.trim() || actionLoading === rejectDialog.bookingId}
+                onClick={confirmReject}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 shadow-sm"
+              >
+                {actionLoading === rejectDialog.bookingId ? 'Declining...' : 'Confirm Decline'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Incident Resolution Modal */}
+      {resolveDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+            <h3 className="text-sm font-bold text-slate-900">Resolve Equipment Incident</h3>
+            <p className="text-xs text-slate-500">
+              Document technician inspection notes and disposition before releasing equipment from quarantine.
+            </p>
+            <textarea
+              autoFocus
+              rows={3}
+              value={resolveDialog.notes}
+              onChange={(e) => setResolveDialog({ ...resolveDialog, notes: e.target.value })}
+              placeholder="e.g. Cleaned optics with isopropanol, recalibrated alignment, equipment operational."
+              className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setResolveDialog(null)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!resolveDialog.notes.trim() || actionLoading === resolveDialog.incidentId}
+                onClick={confirmResolveIncident}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 shadow-sm"
+              >
+                {actionLoading === resolveDialog.incidentId ? 'Resolving...' : 'Resolve & Release'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Audit Modal */}
       {activeAuditBookingId && (

@@ -373,7 +373,7 @@ export const Catalog = () => {
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition inline-flex items-center gap-1.5"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Show All 26 Verified Resources
+            Reset Filters & View All Verified Resources
           </button>
         </div>
       ) : (

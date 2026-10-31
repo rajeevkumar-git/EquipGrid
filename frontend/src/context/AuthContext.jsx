@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
   // Available demo personas for judge evaluation mode
   const demoPersonas = [
     { email: 'student@equipgrid.demo', label: 'Student (Aarav Singh)', role: 'borrower', dept: 'ECE' },
+    { email: 'researcher@equipgrid.demo', label: 'Researcher (Sneha Patel)', role: 'borrower', dept: 'Biotech' },
     { email: 'labmanager@equipgrid.demo', label: 'Lab In-charge (Dr. Priya Roy)', role: 'owner', dept: 'Fab Lab' },
     { email: 'admin@equipgrid.demo', label: 'Admin (Prof. Ramesh Kumar)', role: 'admin', dept: 'Dean of Research' },
   ];

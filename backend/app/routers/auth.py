@@ -23,7 +23,12 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
             detail="An account with this email address already exists. Please sign in instead."
         )
 
-    allowed_roles = {"borrower", "owner", "admin"}
+    allowed_roles = {"borrower", "owner"}
+    if payload.role == "admin":
+        raise HTTPException(
+            status_code=400,
+            detail="Admin accounts cannot be self-registered. Please contact the system administrator."
+        )
     if payload.role not in allowed_roles:
         raise HTTPException(status_code=400, detail=f"Role must be one of: {allowed_roles}")
 

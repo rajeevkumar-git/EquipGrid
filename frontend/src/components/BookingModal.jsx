@@ -133,15 +133,10 @@ export const BookingModal = ({ resource, onClose, onSuccess }) => {
         onSuccess();
       }, 2000);
     } catch (err) {
-      console.warn('Backend booking submission fallback:', err);
-      setResultMessage({
-        type: 'success',
-        title: 'Request Submitted to Lab Manager! 🎉',
-        desc: 'Lab In-charge has received your request. Switch personas to review and approve!',
-      });
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
+      console.warn('Booking request error:', err);
+      const errorMsg = err.response?.data?.detail || err.message || 'Unable to submit reservation request. Please try again.';
+      setError(errorMsg);
+      setResultMessage(null);
     } finally {
       setSubmitting(false);
     }
@@ -195,7 +190,7 @@ export const BookingModal = ({ resource, onClose, onSuccess }) => {
                     <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Anti-Monopoly Fair Allocation
                   </span>
                   <span className="text-emerald-700 font-bold">
-                    {quota ? `${quota.current_monthly_count || 0} / ${quota.max_allowed || 4} slots used` : 'Fair Allocation Active'}
+                    {quota ? `${quota.bookings_this_month ?? quota.current_monthly_count ?? 0} / ${quota.max_bookings_per_month ?? quota.max_allowed ?? 4} slots used` : 'Fair Allocation Active'}
                   </span>
                 </div>
                 <p className="text-slate-500 text-[11px]">

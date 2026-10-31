@@ -4,7 +4,7 @@ from typing import Optional, List
 from app.database import get_db
 from app.models.audit import AuditLog
 from app.schemas import AuditLogOut
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_role
 from app.models.user import User
 
 router = APIRouter(prefix="/api/audit-logs", tags=["Audit"])
@@ -32,7 +32,7 @@ def list_audit_logs(
     actor_id: Optional[str] = Query(None),
     action: Optional[str] = Query(None),
     limit: int = Query(100, le=500),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin")),
     db: Session = Depends(get_db),
 ):
     """Admin-level filtered audit log search."""

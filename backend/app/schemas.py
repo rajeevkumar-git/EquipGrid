@@ -172,6 +172,8 @@ class BookingOut(BaseModel):
     id: str
     resource_id: str
     borrower_id: str
+    resource_name: Optional[str] = None
+    resource_details: Optional[dict] = None
     start_time: datetime
     end_time: datetime
     actual_checkin_time: Optional[datetime]
@@ -345,3 +347,5 @@ class QuotaStatus(BaseModel):
     is_quota_exceeded: bool
     cooldown_active: bool
     cooldown_ends_at: Optional[datetime]
+    current_monthly_count: Optional[int] = None
+    max_allowed: Optional[int] = None
