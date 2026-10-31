@@ -70,8 +70,8 @@ export const BookingModal = ({ resource, onClose, onSuccess }) => {
       setError('Please select an available slot.');
       return;
     }
-    if (!purpose.trim()) {
-      setError('Please specify the project or research purpose for this booking.');
+    if (!purpose.trim() || purpose.trim().length < 5) {
+      setError('Please provide at least 5 characters describing your research purpose.');
       return;
     }
 
@@ -83,7 +83,7 @@ export const BookingModal = ({ resource, onClose, onSuccess }) => {
         resource_id: resource.id,
         start_time: selectedSlot.start_time,
         end_time: selectedSlot.end_time,
-        purpose_text: purpose,
+        purpose_text: purpose.trim(),
         documents: [],
       };
 
@@ -223,15 +223,21 @@ export const BookingModal = ({ resource, onClose, onSuccess }) => {
 
               {/* Purpose & Research Intent */}
               <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-slate-600" /> Research / Project Intent *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-slate-600" /> Research / Project Intent *
+                  </label>
+                  <span className={`text-[10px] font-semibold ${purpose.length > 450 ? 'text-amber-600' : 'text-slate-400'}`}>
+                    {purpose.length}/500 chars (min 5)
+                  </span>
+                </div>
                 <textarea
                   required
                   rows={3}
+                  maxLength={500}
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
-                  placeholder="Describe your research experiment or project scope..."
+                  placeholder="Describe your research experiment or project scope (minimum 5 characters)..."
                   className="w-full text-xs p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -255,8 +261,8 @@ export const BookingModal = ({ resource, onClose, onSuccess }) => {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition"
+                  disabled={submitting || !selectedSlot || purpose.trim().length < 5}
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
                   {submitting ? 'Submitting...' : 'Confirm Request'}
                 </button>

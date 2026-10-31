@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { JudgeDemoBanner } from './components/JudgeDemoBanner';
 import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
+import { LandingPage } from './pages/LandingPage';
 import { Catalog } from './pages/Catalog';
 import { ResourceDetail } from './pages/ResourceDetail';
 import { StudentDashboard } from './pages/StudentDashboard';
@@ -24,7 +25,8 @@ function AppContent() {
       {/* Page Routing */}
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={<Catalog />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/catalog" element={<Catalog />} />
           <Route path="/resource/:id" element={<ResourceDetail />} />
           <Route path="/student-dashboard" element={<StudentDashboard />} />
           <Route path="/manager-dashboard" element={<ManagerDashboard />} />

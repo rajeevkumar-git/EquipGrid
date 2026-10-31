@@ -1,18 +1,38 @@
-from pydantic import BaseModel, EmailStr
+import re
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
+
+
+def sanitize_text(val: Optional[str]) -> Optional[str]:
+    """Strip malicious script tags and raw HTML from incoming text."""
+    if not val or not isinstance(val, str):
+        return val
+    # Strip <script ...>...</script> tags entirely
+    cleaned = re.sub(r'(?i)<script[\s\S]*?>[\s\S]*?</script>', '', val)
+    # Strip remaining HTML tags
+    cleaned = re.sub(r'<[^>]+>', '', cleaned)
+    return cleaned.strip()
 
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str
-    full_name: str
+    password: str = Field(..., min_length=6, max_length=128)
+    full_name: str = Field(..., min_length=2, max_length=100)
     role: str = "borrower"          # borrower | owner | admin
-    institutional_affiliation: Optional[str] = None
-    department: Optional[str] = None
-    phone: Optional[str] = None
+    institutional_affiliation: Optional[str] = Field(None, max_length=150)
+    department: Optional[str] = Field(None, max_length=150)
+    phone: Optional[str] = Field(None, max_length=30)
+
+    @field_validator("full_name")
+    @classmethod
+    def clean_name(cls, v: str) -> str:
+        cleaned = sanitize_text(v)
+        if len(cleaned) < 2:
+            raise ValueError("Full name must contain at least 2 characters")
+        return cleaned
 
 
 class LoginRequest(BaseModel):
@@ -50,8 +70,8 @@ class UserOut(BaseModel):
 # ── Resource ──────────────────────────────────────────────────────────────────
 
 class ResourceCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
+    name: str = Field(..., min_length=3, max_length=150)
+    description: Optional[str] = Field(None, max_length=3000)
     category: str = "equipment"
     institution: Optional[str] = "IIT Delhi"
     utilization_rate: Optional[float] = 0.20
@@ -70,6 +90,11 @@ class ResourceCreate(BaseModel):
     eligibility_requirements: list = []
     usage_rules: list = []
     fair_usage_policy: dict = {}
+
+    @field_validator("name")
+    @classmethod
+    def clean_res_name(cls, v: str) -> str:
+        return sanitize_text(v)
 
 
 class ResourceOut(BaseModel):
@@ -125,8 +150,16 @@ class BookingCreate(BaseModel):
     resource_id: str
     start_time: datetime
     end_time: datetime
-    purpose_text: str
+    purpose_text: str = Field(..., min_length=5, max_length=2000)
     documents: list = []
+
+    @field_validator("purpose_text")
+    @classmethod
+    def clean_purpose(cls, v: str) -> str:
+        cleaned = sanitize_text(v)
+        if len(cleaned) < 5:
+            raise ValueError("Purpose text must contain at least 5 meaningful characters")
+        return cleaned
 
 
 class BookingOut(BaseModel):
@@ -155,11 +188,21 @@ class BookingOut(BaseModel):
 
 
 class BookingDecision(BaseModel):
-    reason: Optional[str] = None
+    reason: Optional[str] = Field(None, max_length=1000)
+
+    @field_validator("reason")
+    @classmethod
+    def clean_decision_reason(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_text(v) if v else v
 
 
 class CancelRequest(BaseModel):
-    reason: Optional[str] = None
+    reason: Optional[str] = Field(None, max_length=1000)
+
+    @field_validator("reason")
+    @classmethod
+    def clean_cancel_reason(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_text(v) if v else v
 
 
 # ── Condition Record ──────────────────────────────────────────────────────────
@@ -167,8 +210,13 @@ class CancelRequest(BaseModel):
 class ConditionRecordCreate(BaseModel):
     condition_rating: str           # excellent | good | fair | damaged
     checklist_responses: dict = {}
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=2000)
     photos: list = []
+
+    @field_validator("notes")
+    @classmethod
+    def clean_cond_notes(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_text(v) if v else v
 
 
 class ConditionRecordOut(BaseModel):
@@ -198,9 +246,17 @@ class IncidentCreate(BaseModel):
     resource_id: str
     incident_type: str      # damage | delay | policy_violation | no_show | dispute | other
     severity: Optional[str] = None
-    description: str
+    description: str = Field(..., min_length=5, max_length=3000)
     evidence_photos: list = []
     estimated_cost: Optional[float] = None
+
+    @field_validator("description")
+    @classmethod
+    def clean_inc_desc(cls, v: str) -> str:
+        cleaned = sanitize_text(v)
+        if len(cleaned) < 5:
+            raise ValueError("Incident description must contain at least 5 meaningful characters")
+        return cleaned
 
 
 class IncidentOut(BaseModel):
@@ -227,7 +283,12 @@ class IncidentOut(BaseModel):
 
 
 class IncidentResolve(BaseModel):
-    resolution_notes: str
+    resolution_notes: str = Field(..., min_length=5, max_length=2000)
+
+    @field_validator("resolution_notes")
+    @classmethod
+    def clean_resolve_notes(cls, v: str) -> str:
+        return sanitize_text(v)
 
 
 # ── Audit ─────────────────────────────────────────────────────────────────────

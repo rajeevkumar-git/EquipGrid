@@ -25,13 +25,20 @@ from app.services.gemini_service import (
 router = APIRouter(prefix="/api/bookings", tags=["Bookings"])
 
 
-def _send_notification(db: Session, user_id: str, ntype: str, title: str, body: str, entity_id: str):
-    notif = Notification(
-        user_id=user_id, type=ntype, title=title, body=body,
-        related_entity_type="booking", related_entity_id=entity_id,
-    )
-    db.add(notif)
-    db.commit()
+def _send_notification(user_id: str, ntype: str, title: str, body: str, entity_id: str):
+    from app.database import SessionLocal
+    local_db = SessionLocal()
+    try:
+        notif = Notification(
+            user_id=user_id, type=ntype, title=title, body=body,
+            related_entity_type="booking", related_entity_id=entity_id,
+        )
+        local_db.add(notif)
+        local_db.commit()
+    except Exception as e:
+        print(f"[WARN] Failed sending notification: {e}")
+    finally:
+        local_db.close()
 
 
 # ── Create Booking Request ──────────────────────────────────────────────────
@@ -150,7 +157,7 @@ def create_booking(
 
     # Notify owner
     bg.add_task(
-        _send_notification, db, resource.owner_id, "new_booking_request",
+        _send_notification, resource.owner_id, "new_booking_request",
         f"New booking request: {resource.name}",
         f"{current_user.full_name} has requested {resource.name} from {payload.start_time.strftime('%b %d %H:%M')}.",
         booking.id,
@@ -205,7 +212,7 @@ def approve_booking(
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-    if booking.status not in ("pending_approval", "waitlisted"):
+    if booking.status not in ("pending_approval", "waitlisted", "approved"):
         raise HTTPException(status_code=400, detail=f"Cannot approve a booking in status '{booking.status}'")
 
     booking.status = "approved"
@@ -223,7 +230,7 @@ def approve_booking(
     )
 
     bg.add_task(
-        _send_notification, db, booking.borrower_id, "booking_approved",
+        _send_notification, booking.borrower_id, "booking_approved",
         "Your booking has been approved! ✅",
         f"Your request has been approved. Please check in at the scheduled time.",
         booking_id,
@@ -245,7 +252,7 @@ def reject_booking(
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-    if booking.status not in ("pending_approval", "waitlisted"):
+    if booking.status not in ("pending_approval", "waitlisted", "approved"):
         raise HTTPException(status_code=400, detail=f"Cannot reject a booking in status '{booking.status}'")
 
     # Generate AI-friendly rejection message
@@ -276,7 +283,7 @@ def reject_booking(
     )
 
     bg.add_task(
-        _send_notification, db, booking.borrower_id, "booking_rejected",
+        _send_notification, booking.borrower_id, "booking_rejected",
         "Booking request not approved",
         ai_explanation,
         booking_id,
@@ -457,7 +464,7 @@ def return_booking(
     # Alert owner if damage detected
     if ai_result.get("damage_detected") and resource:
         bg.add_task(
-            _send_notification, db, resource.owner_id, "damage_detected",
+            _send_notification, resource.owner_id, "damage_detected",
             f"⚠️ Damage detected on return: {resource.name}",
             f"AI analysis flagged {ai_result.get('severity', 'possible')} damage. Please review the return condition report.",
             booking_id,

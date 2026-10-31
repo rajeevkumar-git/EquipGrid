@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 import { 
   Layers, 
+  Compass,
   Calendar, 
   ShieldCheck, 
   History, 
@@ -50,7 +51,8 @@ export const Navbar = () => {
   };
 
   const navLinks = [
-    { to: '/', label: 'Explore Resources', icon: Layers },
+    { to: '/', label: 'Home', icon: Layers },
+    { to: '/catalog', label: 'Explore Equipment', icon: Compass },
     ...(user?.role === 'borrower' || !user
       ? [{ to: '/student-dashboard', label: 'My Bookings', icon: Calendar }]
       : []),
