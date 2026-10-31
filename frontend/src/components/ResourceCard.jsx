@@ -118,8 +118,14 @@ export const ResourceCard = ({ resource, onBookClick }) => {
           )}
         </div>
 
-        {/* Requirements / Deposit Tags */}
+        {/* Requirements / Pricing / Deposit Tags */}
         <div className="flex flex-wrap gap-1.5 mb-3">
+          {/* Hourly Rate */}
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-800 px-2 py-0.5 rounded">
+            <Coins className="w-3 h-3 text-slate-600" />
+            {(resource.hourly_rate ?? 0) > 0 ? `₹${resource.hourly_rate}/hr` : 'Free / Subsidized'}
+          </span>
+
           {hasTrainingReq && (
             <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded">
               <Award className="w-3 h-3 text-amber-600" /> Training Required
@@ -127,11 +133,11 @@ export const ResourceCard = ({ resource, onBookClick }) => {
           )}
           {resource.requires_deposit ? (
             <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded">
-              <Coins className="w-3 h-3 text-indigo-600" /> Deposit: ₹{resource.deposit_amount}
+              Deposit: ₹{resource.deposit_amount} (Refundable)
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded">
-              <Coins className="w-3 h-3 text-emerald-600" /> Zero Deposit (Free Access)
+              Zero Caution Deposit
             </span>
           )}
           {resource.max_booking_hours && (

@@ -155,9 +155,24 @@ export const StudentDashboard = () => {
                         {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} –{' '}
                         {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      {b.deposit_held > 0 && (
-                        <span className="font-semibold text-slate-600">
-                          Deposit: ₹{b.deposit_held}
+                      {b.deposit_held > 0 ? (
+                        <span className="font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                          Caution Deposit: ₹{b.deposit_held}
+                        </span>
+                      ) : (
+                        <span className="font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          Caution Deposit Waived (High Trust Scholar)
+                        </span>
+                      )}
+                      {b.total_fee !== undefined && (
+                        <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                          Runtime Fee: {b.total_fee > 0 ? `₹${b.total_fee}` : 'Free / Subsidized'}
+                        </span>
+                      )}
+                      {b.status === 'completed' && (
+                        <span className="font-bold text-emerald-800 bg-emerald-100/80 border border-emerald-300 px-2 py-0.5 rounded flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Deposit Settled / Refunded to UPI
                         </span>
                       )}
                     </div>

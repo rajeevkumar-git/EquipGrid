@@ -122,17 +122,23 @@ export const ResourceDetail = () => {
               </div>
             )}
 
-            {/* Quick Specs */}
-            <div className="grid grid-cols-2 gap-3 pt-1">
+            {/* Quick Specs & Transparent Pricing */}
+            <div className="grid grid-cols-3 gap-2.5 pt-1">
+              <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Slot Rate</span>
+                <span className="font-semibold text-slate-800">
+                  {(resource.hourly_rate ?? 0) > 0 ? `₹${resource.hourly_rate}/hr` : 'Free / Subsidized'}
+                </span>
+              </div>
+              <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Caution Deposit</span>
+                <span className="font-semibold text-slate-800">
+                  {resource.requires_deposit ? `₹${resource.deposit_amount} (Refundable)` : 'Zero Deposit'}
+                </span>
+              </div>
               <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Max Duration</span>
                 <span className="font-semibold text-slate-800">{resource.max_booking_hours} Hours</span>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Deposit Policy</span>
-                <span className="font-semibold text-slate-800">
-                  {resource.requires_deposit ? `₹${resource.deposit_amount}` : 'Zero Deposit (Free)'}
-                </span>
               </div>
             </div>
           </div>
