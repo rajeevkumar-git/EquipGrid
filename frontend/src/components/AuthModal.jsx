@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { X, Lock, Mail, User, Building, Briefcase, Phone, ShieldCheck, ArrowRight, Sparkles, Scale, Info } from 'lucide-react';
+import { X, Lock, Mail, User, Building, Briefcase, Phone, ShieldCheck, ArrowRight, Sparkles, Scale, Info, Eye, EyeOff } from 'lucide-react';
 
 export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
   // Login Form State
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   
   // Register Form State
   const [registerData, setRegisterData] = useState({
@@ -31,6 +32,7 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
     department: 'Engineering',
     phone: '',
   });
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -191,17 +193,32 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700">Password</label>
+                  {loginEmail.toLowerCase().includes('@equipgrid.demo') && (
+                    <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded">
+                      Demo Password: Demo@1234
+                    </span>
+                  )}
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                   <input
-                    type="password"
+                    type={showLoginPassword ? 'text' : 'password'}
                     required
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="Demo@1234"
-                    className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="Enter your account password"
+                    className="w-full pl-9 pr-9 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    title={showLoginPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -290,14 +307,22 @@ export const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
                 <div className="relative">
                   <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                   <input
-                    type="password"
+                    type={showRegisterPassword ? 'text' : 'password'}
                     required
                     minLength={6}
                     value={registerData.password}
                     onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                     placeholder="At least 6 characters"
-                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    className="w-full pl-8 pr-8 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    title={showRegisterPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showRegisterPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
               </div>
 

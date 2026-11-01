@@ -219,6 +219,17 @@ For hackathon judges and institutional evaluators, EquipGrid includes a discreet
 
 ---
 
+## 🖥️ Core Application Views & Workflows
+
+| View | Primary Purpose & Key Capabilities |
+| :--- | :--- |
+| **01. Institutional Portal** | Landing portal highlighting trusted inter-institutional equipment sharing, stream discovery, and the 10-step custody lifecycle. |
+| **02. Stream-Wise Catalog** | 30 verified academic instruments across CSE/AI, ECE/VLSI, Mechanical, Nanotech, Biotech, and Civil with real-time availability and anti-monopoly fair ranking. |
+| **03. Student Dashboard** | Active borrower reservations, two-stage UPI caution deposit split receipts, physical check-in status, and condition sign-off. |
+| **04. Lab Manager Dashboard** | Faculty reservation approvals, 5-point condition checklist reviews, maintenance slot scheduling, and equipment status controls. |
+| **05. Audit History Ledger** | Immutable cryptographic SHA-256 audit log tracking every reservation, custody transfer, condition delta, and financial clearance. |
+
+
 
 ---
 

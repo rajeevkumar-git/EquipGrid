@@ -15,4 +15,19 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // If authenticated request receives 401, purge stale/expired token so user can re-authenticate
+    if (error.response && error.response.status === 401) {
+      const url = error.config?.url || '';
+      if (!url.includes('/api/auth/login') && !url.includes('/api/auth/register')) {
+        console.warn('[EquipGrid API] Session token expired or invalid. Purging stale token.');
+        localStorage.removeItem('equipgrid_token');
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

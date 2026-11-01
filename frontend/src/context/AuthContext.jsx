@@ -36,7 +36,13 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data);
       localStorage.setItem('equipgrid_user', JSON.stringify(res.data));
     } catch (err) {
-      console.warn('Backend /me session check:', err?.message || err);
+      if (err.response?.status === 401) {
+        console.warn('[EquipGrid Auth] Session token expired after inactivity. Resetting auth state.');
+        localStorage.removeItem('equipgrid_token');
+        setToken(null);
+      } else {
+        console.warn('Backend /me session check:', err?.message || err);
+      }
     }
   };
 
@@ -118,10 +124,37 @@ export const AuthProvider = ({ children }) => {
     return res;
   };
 
+  // Helper to persist registered accounts locally for resilience across cloud restarts & offline modes
+  const saveToLocalRegistry = (userData, plainPassword) => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('equipgrid_registered_users') || '[]');
+      const filtered = stored.filter(u => u.email.toLowerCase() !== userData.email.toLowerCase());
+      filtered.push({
+        id: userData.id,
+        email: userData.email.toLowerCase(),
+        password: plainPassword,
+        full_name: userData.full_name,
+        role: userData.role || 'borrower',
+        institutional_affiliation: userData.institutional_affiliation || 'IIT Delhi',
+        department: userData.department || 'Engineering',
+        savedAt: Date.now(),
+      });
+      localStorage.setItem('equipgrid_registered_users', JSON.stringify(filtered));
+    } catch (_) {}
+  };
+
   // Standard Login (Email & Password)
   const login = async (email, password) => {
     setLoading(true);
     const cleanEmail = (email || '').trim().toLowerCase();
+
+    // Check local registered accounts registry first for instant fallback & cloud-restart recovery
+    let localAccounts = [];
+    try {
+      localAccounts = JSON.parse(localStorage.getItem('equipgrid_registered_users') || '[]');
+    } catch (_) {}
+    const localMatch = localAccounts.find(u => u.email.toLowerCase() === cleanEmail);
+
     try {
       const res = await api.post('/api/auth/login', { email: cleanEmail, password });
       const { access_token, user_id, role, full_name } = res.data;
@@ -130,15 +163,47 @@ export const AuthProvider = ({ children }) => {
       const userData = { id: user_id, email: cleanEmail, full_name, role };
       localStorage.setItem('equipgrid_user', JSON.stringify(userData));
       setUser(userData);
+      saveToLocalRegistry(userData, password);
       return { success: true };
     } catch (err) {
-      // If backend explicitly rejected the login credentials (401 or 400), return the error
-      if (err.response?.data?.detail) {
-        return { success: false, error: err.response.data.detail };
+      // Recovery Scenario: Cloud backend container restarted (or SQLite was recreated)
+      // If user was registered on this browser with this exact password, silently re-sync to backend!
+      if (localMatch && localMatch.password === password) {
+        try {
+          const syncRes = await api.post('/api/auth/register', {
+            email: localMatch.email,
+            password: password,
+            full_name: localMatch.full_name,
+            role: localMatch.role || 'borrower',
+            institutional_affiliation: localMatch.institutional_affiliation || 'IIT Delhi',
+            department: localMatch.department || 'Engineering',
+          });
+          if (syncRes.data?.access_token) {
+            localStorage.setItem('equipgrid_token', syncRes.data.access_token);
+            setToken(syncRes.data.access_token);
+            const syncedUser = {
+              id: syncRes.data.user_id,
+              email: cleanEmail,
+              full_name: syncRes.data.full_name,
+              role: syncRes.data.role,
+            };
+            localStorage.setItem('equipgrid_user', JSON.stringify(syncedUser));
+            setUser(syncedUser);
+            return { success: true };
+          }
+        } catch (syncErr) {
+          // If backend is offline or network error, log in using stored local account
+          if (!syncErr.response || syncErr.response.status >= 500) {
+            setUser(localMatch);
+            localStorage.setItem('equipgrid_user', JSON.stringify(localMatch));
+            return { success: true };
+          }
+        }
       }
-      // If backend is offline or connecting, check if it matches a demo persona
+
+      // Check if credentials match a standard demo persona
       const demoMatch = demoPersonas.find(p => p.email.toLowerCase() === cleanEmail);
-      if (demoMatch) {
+      if (demoMatch && (password === 'Demo@1234' || !err.response)) {
         const fallbackUser = {
           id: demoMatch.email.split('@')[0],
           email: demoMatch.email,
@@ -149,8 +214,12 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('equipgrid_user', JSON.stringify(fallbackUser));
         return { success: true };
       }
-      const msg = err.response?.data?.detail || 'Invalid email or password';
-      return { success: false, error: msg };
+
+      // If backend explicitly rejected the login credentials (401 or 400)
+      if (err.response?.data?.detail) {
+        return { success: false, error: err.response.data.detail };
+      }
+      return { success: false, error: 'Invalid email or password' };
     } finally {
       setLoading(false);
     }
@@ -174,9 +243,13 @@ export const AuthProvider = ({ children }) => {
       const userData = { id: user_id, email: cleanEmail, full_name, role };
       localStorage.setItem('equipgrid_user', JSON.stringify(userData));
       setUser(userData);
+      saveToLocalRegistry(
+        { ...userData, institutional_affiliation: cleanPayload.institutional_affiliation, department: cleanPayload.department },
+        cleanPayload.password
+      );
       return { success: true };
     } catch (err) {
-      // If backend responded with an error (e.g., 400 Duplicate Email, validation error), NEVER swallow it!
+      // If backend responded with duplicate email (400 / 409), return friendly error
       if (err.response?.data?.detail) {
         return { success: false, error: err.response.data.detail };
       }
@@ -190,19 +263,7 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: 'An account with this email address already exists. Please sign in instead.' };
       }
 
-      // Check collision with previously registered offline accounts
-      try {
-        const storedAccounts = JSON.parse(localStorage.getItem('equipgrid_registered_accounts') || '[]');
-        if (storedAccounts.some(acc => acc.email.toLowerCase() === cleanEmail)) {
-          return { success: false, error: 'An account with this email address already exists. Please sign in instead.' };
-        }
-        storedAccounts.push({ email: cleanEmail, full_name: cleanPayload.full_name, role: cleanPayload.role });
-        localStorage.setItem('equipgrid_registered_accounts', JSON.stringify(storedAccounts));
-      } catch (e) {
-        // storage fallback
-      }
-
-      // If backend is truly unreachable / network error, only create fallback user if not duplicate
+      // Fallback offline registration with password persistence for future logins
       const fallbackUser = {
         id: 'user-' + Date.now(),
         email: cleanEmail,
@@ -213,6 +274,7 @@ export const AuthProvider = ({ children }) => {
       };
       setUser(fallbackUser);
       localStorage.setItem('equipgrid_user', JSON.stringify(fallbackUser));
+      saveToLocalRegistry(fallbackUser, cleanPayload.password);
       return { success: true };
     } finally {
       setLoading(false);
